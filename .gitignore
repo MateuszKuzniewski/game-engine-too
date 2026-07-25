@@ -1,0 +1,66 @@
+# Build directories
+build/
+build-*/
+out/
+cmake-build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# vcpkg / dependency manifests (if you add one later)
+vcpkg_installed/
+
+# Neovim / editor
+.nvim.lua
+.nvimlog
+*.swp
+*.swo
+Session.vim
+.netrwhist
+tags
+.clangd/
+.cache/
+
+# clangd / ccls index
+.ccls-cache/
+compile_commands.json
+
+# Compiled binaries / objects
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.pdb
+
+# Compiled shaders (SPIR-V) 
+*.spv
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE
+.vs/
+.vscode/
+*.user
+.idea/
+
+# Logs / misc
+*.log
+
+# Bash BashScripts
+buildandrun.sh
+run.sh
