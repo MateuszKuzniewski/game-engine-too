@@ -1,0 +1,8 @@
+leak:libdecor
+leak:fontconfig
+leak:pango
+leak:gtk
+leak:fontconfig
+leak:wp_viewport_get
+leak:wp_fractional_scale
+leak:wl_window.c
