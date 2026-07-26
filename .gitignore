@@ -62,6 +62,3 @@ Thumbs.db
 # Logs / misc
 *.log
 
-# Bash BashScripts
-buildandrun.sh
-run.sh
