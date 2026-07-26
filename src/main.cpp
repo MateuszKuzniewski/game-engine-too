@@ -1,8 +1,10 @@
-#include <iostream>
-#include <print>
+#include "application.h"
 
-int main()
+int main() 
 {
-    std::println("{0}", "test");
+    get::application app;
+    app.run();
+    app.shutdown();
+
     return 0;
 }
