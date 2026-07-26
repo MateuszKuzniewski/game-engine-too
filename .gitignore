@@ -27,6 +27,7 @@ vcpkg_installed/
 Session.vim
 .netrwhist
 tags
+.clangd
 .clangd/
 .cache/
 
