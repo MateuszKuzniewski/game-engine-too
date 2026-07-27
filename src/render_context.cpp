@@ -15,7 +15,12 @@ get::render_context::render_context(const std::string& title)
 
 get::render_context::~render_context()
 {
-    vkDestroyInstance(_instance, nullptr);
+    if (_instance)
+    {
+        vkDestroyInstance(_instance, nullptr);
+    }
+
+    volkFinalize();
     glfwTerminate();
 }
 
