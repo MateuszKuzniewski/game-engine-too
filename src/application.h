@@ -1,7 +1,8 @@
 #pragma once
 #include <memory>
 #include "window.h"
-#include "render_context.h"
+#include "vulkan/vulkan_surface.h"
+#include "vulkan/render_context.h"
 
 namespace get
 {   
@@ -23,5 +24,6 @@ namespace get
     private:
         std::unique_ptr<render_context> _render_context;
         std::unique_ptr<window> _window;
+        std::unique_ptr<vulkan_surface> _surface;
     };
 }

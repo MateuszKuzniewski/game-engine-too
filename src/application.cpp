@@ -1,11 +1,9 @@
+#include <memory>
 #include <print>
 #include "application.h"
 
-
 get::application::application()
 {
-    std::println("{0}", "SYSTEM: Application was created");
-
     get::window_settings settings
     {
         .width = 1280,
@@ -15,6 +13,8 @@ get::application::application()
 
     _render_context = std::make_unique<render_context>(settings.title);
     _window = std::make_unique<window>(settings);
+    _surface = std::make_unique<vulkan_surface>(*_window, _render_context->GetInstance());
+    std::println("{0}", "SYSTEM: Application was created");
 }
 
 get::application::~application()

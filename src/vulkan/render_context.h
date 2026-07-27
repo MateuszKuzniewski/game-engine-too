@@ -6,17 +6,18 @@
 #include <string>
 #include <vk_mem_alloc.h>
 
+
 namespace get
 {
     class render_context
     {
     public:
-
         render_context(const std::string& title);
         ~render_context();
 
-    private:  
+        VkInstance GetInstance() { return _instance; }
 
+    private:  
         void glfw_init(); 
         void create_vulkan_instance(const std::string& title);
         
@@ -30,7 +31,6 @@ namespace get
             void* pUserData);
 
     private:
-
         VkInstance _instance;
     };
 }

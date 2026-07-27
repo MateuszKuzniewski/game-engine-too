@@ -32,7 +32,10 @@ FetchContent_MakeAvailable(glm glfw vma)
 
 file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/*.h
-    ${PROJECT_SOURCE_DIR}/src/*.cpp)
+    ${PROJECT_SOURCE_DIR}/src/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/vulkan/*.h
+    ${PROJECT_SOURCE_DIR}/src/vulkan/*.cpp)
+
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -2,10 +2,8 @@
 #include <string>
 #include <print>
 #include <iostream>
-#include "GLFW/glfw3.h"
-#include "types.h"
+#include "../types.h"
 #include "render_context.h"
-
 
 get::render_context::render_context(const std::string& title)
 {
@@ -89,9 +87,10 @@ void get::render_context::create_vulkan_instance(const std::string& title)
     volkLoadInstance(_instance);
 }
 
+
 std::vector<const char*> get::render_context::get_vulkan_extensions()
 {
-     u32 glfw_extension_count = 0;
+    u32 glfw_extension_count = 0;
     const char** glfw_extensions;
 
     glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
