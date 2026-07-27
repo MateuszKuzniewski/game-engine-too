@@ -6,3 +6,6 @@ leak:fontconfig
 leak:wp_viewport_get
 leak:wp_fractional_scale
 leak:wl_window.c
+leak:libnvidia-glcore
+leak:dbus_bus_register
+leak:internal_bus_get
