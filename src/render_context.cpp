@@ -2,6 +2,7 @@
 #include <string>
 #include <print>
 #include <iostream>
+#include "GLFW/glfw3.h"
 #include "types.h"
 #include "render_context.h"
 
@@ -20,7 +21,9 @@ get::render_context::~render_context()
 
 void get::render_context::glfw_init()
 {
-    if(glfwInit() == GL_FALSE)
+    int res = glfwInit();
+
+    if (res != GL_TRUE)
     {
         throw std::runtime_error("Failed to init GLFW");
     }
