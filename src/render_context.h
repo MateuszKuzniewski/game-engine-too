@@ -4,11 +4,11 @@
 
 namespace get
 {
-    class glfw_context
+    class render_context
     {
     public:
 
-        glfw_context()
+        render_context()
         {
             if (!glfwInit())
             {
@@ -16,7 +16,7 @@ namespace get
             }
         }
 
-        ~glfw_context()
+        ~render_context()
         {
             glfwTerminate();
         }

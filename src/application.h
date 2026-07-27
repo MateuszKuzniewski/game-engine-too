@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include "window.h"
-#include "glfw_context.h"
+#include "render_context.h"
 
 namespace get
 {   
@@ -21,7 +21,7 @@ namespace get
         void shutdown();
 
     private:
-        std::unique_ptr<glfw_context> _glfw_context;
+        std::unique_ptr<render_context> _glfw_context;
         std::unique_ptr<window> _window;
     };
 }

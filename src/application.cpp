@@ -1,8 +1,5 @@
-#include <memory>
 #include <print>
 #include "application.h"
-#include "GLFW/glfw3.h"
-#include "glfw_context.h"
 
 
 get::application::application()
@@ -16,7 +13,7 @@ get::application::application()
         .title = "Game Engine Too"
     };
 
-    _glfw_context = std::make_unique<glfw_context>();
+    _glfw_context = std::make_unique<render_context>();
     _window = std::make_unique<window>(settings);
 }
 
@@ -43,5 +40,3 @@ void get::application::shutdown()
 {
     std::println("{0}", "SYSTEM: Application was closed");
 } 
-
-
