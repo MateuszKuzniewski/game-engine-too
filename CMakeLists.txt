@@ -17,13 +17,18 @@ FetchContent_Declare(
     GIT_TAG 3.4
 )
 
+FetchContent_Declare(
+    vma 
+    GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+    GIT_TAG v3.4.0
+)
+
 
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(glm glfw)
-
+FetchContent_MakeAvailable(glm glfw vma)
 
 file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/*.h
@@ -57,4 +62,5 @@ target_link_libraries(get PRIVATE
     Vulkan::shaderc_combined
     glm::glm
     glfw
+    GPUOpen::VulkanMemoryAllocator
 )
