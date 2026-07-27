@@ -27,7 +27,7 @@ namespace get
         window& operator=(const window&) = delete;
         window& operator=(window&&) = delete;
 
-        GLFWwindow* GetCurrentWindow() const;
+        GLFWwindow* get_current_window() const;
     
     private:
         GLFWwindow* _glfwWindow; 

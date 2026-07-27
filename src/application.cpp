@@ -25,7 +25,7 @@ get::application::~application()
 void get::application::run()
 {
     int x = 0;
-    while(!glfwWindowShouldClose(_window->GetCurrentWindow()))
+    while(!glfwWindowShouldClose(_window->get_current_window()))
     {
         if (x >= 500)
             break;

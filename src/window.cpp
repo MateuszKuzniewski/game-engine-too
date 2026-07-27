@@ -21,7 +21,7 @@ get::window::~window()
     glfwDestroyWindow(_glfwWindow);
 }
 
-GLFWwindow* get::window::GetCurrentWindow() const
+GLFWwindow* get::window::get_current_window() const
 {
     return _glfwWindow;
 }

@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "application.h"
 
 int main() 
@@ -7,5 +8,5 @@ int main()
     app->shutdown();
     
     delete app;
-    return 0;
+    return EXIT_SUCCESS;
 }
