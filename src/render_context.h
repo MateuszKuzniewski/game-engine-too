@@ -1,6 +1,8 @@
 #pragma once
-#include "GLFW/glfw3.h"
-#include <stdexcept>
+#include <volk.h>
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan_core.h>
+#include <string>
 
 namespace get
 {
@@ -8,17 +10,10 @@ namespace get
     {
     public:
 
-        render_context()
-        {
-            if (!glfwInit())
-            {
-                throw std::runtime_error("SYSTEM: Failed to initialize GLFW");
-            }
-        }
+        render_context(const std::string& title);
+        ~render_context();
 
-        ~render_context()
-        {
-            glfwTerminate();
-        }
+    private:
+        VkInstance _instance;
     };
 }

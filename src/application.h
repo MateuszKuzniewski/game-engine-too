@@ -21,7 +21,7 @@ namespace get
         void shutdown();
 
     private:
-        std::unique_ptr<render_context> _glfw_context;
+        std::unique_ptr<render_context> _render_context;
         std::unique_ptr<window> _window;
     };
 }

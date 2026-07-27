@@ -13,7 +13,7 @@ get::application::application()
         .title = "Game Engine Too"
     };
 
-    _glfw_context = std::make_unique<render_context>();
+    _render_context = std::make_unique<render_context>(settings.title);
     _window = std::make_unique<window>(settings);
 }
 
@@ -27,7 +27,7 @@ void get::application::run()
     int x = 0;
     while(!glfwWindowShouldClose(_window->GetCurrentWindow()))
     {
-        if (x >= 1500000)
+        if (x >= 500)
             break;
         x++;
         glfwPollEvents();
