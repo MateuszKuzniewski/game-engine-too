@@ -17,7 +17,7 @@ namespace get
         glfw_context& operator=(const glfw_context&) = delete;
         glfw_context& operator=(glfw_context&&) = delete;
 
-        const char** get_glfw_extensions(u32* count) const;
+        [[nodiscard]] const char** get_glfw_extensions(u32* count) const;
 
     };
 }

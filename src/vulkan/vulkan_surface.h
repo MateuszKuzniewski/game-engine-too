@@ -1,7 +1,6 @@
 #pragma once
 #include <volk.h>
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan_core.h>
 #include "../window.h"
 
 namespace get
@@ -11,6 +10,12 @@ namespace get
     public:
         vulkan_surface(const window& window, VkInstance instance);
         ~vulkan_surface();
+
+        vulkan_surface(const vulkan_surface&) = delete;
+        vulkan_surface(vulkan_surface&&) = delete;
+        vulkan_surface& operator=(const vulkan_surface&) = delete;
+        vulkan_surface& operator=(vulkan_surface&&) = delete;
+
 
     private:
         VkSurfaceKHR _surface;
