@@ -34,7 +34,9 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/*.h
     ${PROJECT_SOURCE_DIR}/src/*.cpp
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.h
-    ${PROJECT_SOURCE_DIR}/src/vulkan/*.cpp)
+    ${PROJECT_SOURCE_DIR}/src/vulkan/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/glfw/*.h
+    ${PROJECT_SOURCE_DIR}/src/glfw/*.cpp)
 
 
 set(CMAKE_CXX_STANDARD 23)
