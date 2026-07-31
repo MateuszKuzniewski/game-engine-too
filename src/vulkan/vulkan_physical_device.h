@@ -1,6 +1,6 @@
 #pragma once
 #include <volk.h>
-#include "../types.h"
+#include "types.h"
 
 namespace get
 {

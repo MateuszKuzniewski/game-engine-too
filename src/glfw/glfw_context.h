@@ -1,7 +1,7 @@
 #pragma once
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
-#include "../types.h"
+#include "types.h"
 
 namespace get
 {

@@ -2,7 +2,7 @@
 #include <string>
 #include <print>
 #include <iostream>
-#include "../types.h"
+#include "types.h"
 #include "vulkan_context.h"
 
 get::vulkan_context::vulkan_context(const glfw_context& context, const std::string& title)

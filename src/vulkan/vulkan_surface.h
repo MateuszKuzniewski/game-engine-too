@@ -1,7 +1,7 @@
 #pragma once
 #include <volk.h>
 #include <GLFW/glfw3.h>
-#include "../window.h"
+#include "window.h"
 
 namespace get
 {
