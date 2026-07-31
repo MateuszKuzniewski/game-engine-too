@@ -50,6 +50,11 @@ endif()
 add_definitions(-DSOME_DEFINITIONS)
 add_executable(get ${sources})
 
+target_include_directories(get PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/glfw
+    ${PROJECT_SOURCE_DIR}/src/vulkan)
+
 target_compile_options(get PRIVATE
     -g
     -O0
