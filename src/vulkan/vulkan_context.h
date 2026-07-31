@@ -18,7 +18,7 @@ namespace get
 
     private:  
 
-        void create_vulkan_instance(const glfw_context& glfwContext, const std::string& title);
+        void create_vulkan_instance(const glfw_context& context, const std::string& title);
         
         [[nodiscard]] std::vector<const char*> get_vulkan_extensions(const glfw_context& glfwContext) const;
         [[nodiscard]] std::vector<const char*> get_vulkan_validation_layers() const;
