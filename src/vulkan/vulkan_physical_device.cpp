@@ -26,12 +26,6 @@ get::vulkan_physical_device::vulkan_physical_device(VkInstance instance)
     }
 }
 
-get::vulkan_physical_device::~vulkan_physical_device()
-{
-
-}
-
-
 VkPhysicalDevice get::vulkan_physical_device::get_device() const
 {
     return _device;

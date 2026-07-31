@@ -1,9 +1,9 @@
 #pragma once
 #include <memory>
 #include "window.h"
-#include "vulkan/vulkan_surface.h"
-#include "vulkan/vulkan_context.h"
-#include "glfw/glfw_context.h"
+#include "vulkan_surface.h"
+#include "vulkan_context.h"
+#include "glfw_context.h"
 
 namespace get
 {   

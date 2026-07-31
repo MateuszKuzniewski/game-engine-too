@@ -11,7 +11,7 @@ get::application::application()
         .height = 720,
         .title = "Game Engine Too"
     };
-    
+
     _glfw_context = std::make_unique<glfw_context>();
     _vulkan_context = std::make_unique<vulkan_context>(*_glfw_context, settings.title);
     _window = std::make_unique<window>(settings);

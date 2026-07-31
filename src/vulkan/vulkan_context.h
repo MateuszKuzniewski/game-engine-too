@@ -2,8 +2,7 @@
 #include <volk.h>
 #include <vector>
 #include <string>
-#include "glfw/glfw_context.h"
-
+#include "glfw_context.h"
 
 namespace get
 {

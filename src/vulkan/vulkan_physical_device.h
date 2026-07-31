@@ -9,7 +9,7 @@ namespace get
     public:
 
         vulkan_physical_device(VkInstance instance);
-        ~vulkan_physical_device();
+        ~vulkan_physical_device() = default;
 
         vulkan_physical_device(const vulkan_physical_device&) = delete;
         vulkan_physical_device(vulkan_physical_device&&) = delete;
