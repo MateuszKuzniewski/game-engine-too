@@ -3,15 +3,14 @@
 #include <print>
 #include <iostream>
 #include "../types.h"
-#include "render_context.h"
+#include "vulkan_context.h"
 
-get::render_context::render_context(const std::string& title)
+get::vulkan_context::vulkan_context(const glfw_context& glfwContext, const std::string& title)
 {
-    glfw_init();
-    create_vulkan_instance(title);
+    create_vulkan_instance(glfwContext, title);
 }
 
-get::render_context::~render_context()
+get::vulkan_context::~vulkan_context()
 {
     if (_instance)
     {
@@ -19,20 +18,9 @@ get::render_context::~render_context()
     }
 
     volkFinalize();
-    glfwTerminate();
 }
 
-void get::render_context::glfw_init()
-{
-    int res = glfwInit();
-
-    if (res != GL_TRUE)
-    {
-        throw std::runtime_error("Failed to init GLFW");
-    }
-}
-
-void get::render_context::create_vulkan_instance(const std::string& title)
+void get::vulkan_context::create_vulkan_instance(const glfw_context& glfwContext, const std::string& title)
 {
     VkResult res = volkInitialize();
 
@@ -52,7 +40,7 @@ void get::render_context::create_vulkan_instance(const std::string& title)
         .apiVersion = VK_API_VERSION_1_4
     };
 
-    auto vulkan_extensions = get_vulkan_extensions();
+    auto vulkan_extensions = get_vulkan_extensions(glfwContext);
     auto vulkan_validation_layers = get_vulkan_validation_layers();
     
     VkDebugUtilsMessengerCreateInfoEXT debug_info
@@ -88,12 +76,10 @@ void get::render_context::create_vulkan_instance(const std::string& title)
 }
 
 
-std::vector<const char*> get::render_context::get_vulkan_extensions()
+std::vector<const char*> get::vulkan_context::get_vulkan_extensions(const glfw_context& glfwContext)
 {
     u32 glfw_extension_count = 0;
-    const char** glfw_extensions;
-
-    glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
+    auto glfw_extensions = glfwContext.get_glfw_extensions(&glfw_extension_count);
     
     std::vector<const char*> required_extensions
     {
@@ -114,7 +100,7 @@ std::vector<const char*> get::render_context::get_vulkan_extensions()
     return required_extensions;
 };
 
-std::vector<const char*> get::render_context::get_vulkan_validation_layers()
+std::vector<const char*> get::vulkan_context::get_vulkan_validation_layers()
 {
     std::vector<const char*> validation_layers
     {
@@ -124,7 +110,7 @@ std::vector<const char*> get::render_context::get_vulkan_validation_layers()
     return validation_layers;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL get::render_context::debug_callback(
+VKAPI_ATTR VkBool32 VKAPI_CALL get::vulkan_context::debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,

@@ -1,27 +1,25 @@
 #pragma once
 #include <volk.h>
-#include <GL/gl.h>
-#include <GLFW/glfw3.h>
 #include <vector>
 #include <string>
 #include <vk_mem_alloc.h>
+#include "../glfw/glfw_context.h"
 
 
 namespace get
 {
-    class render_context
+    class vulkan_context
     {
     public:
-        render_context(const std::string& title);
-        ~render_context();
+        vulkan_context(const glfw_context& glfwContext, const std::string& title);
+        ~vulkan_context();
 
         VkInstance GetInstance() { return _instance; }
 
     private:  
-        void glfw_init(); 
-        void create_vulkan_instance(const std::string& title);
+        void create_vulkan_instance(const glfw_context& glfwContext, const std::string& title);
         
-        std::vector<const char*> get_vulkan_extensions();
+        std::vector<const char*> get_vulkan_extensions(const glfw_context& glfwContext);
         std::vector<const char*> get_vulkan_validation_layers();
 
         static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
