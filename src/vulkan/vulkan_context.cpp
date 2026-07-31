@@ -76,10 +76,10 @@ void get::vulkan_context::create_vulkan_instance(const glfw_context& context, co
 }
 
 
-std::vector<const char*> get::vulkan_context::get_vulkan_extensions(const glfw_context& glfwContext) const
+std::vector<const char*> get::vulkan_context::get_vulkan_extensions(const glfw_context& context) const
 {
     u32 glfw_extension_count = 0;
-    auto glfw_extensions = glfwContext.get_glfw_extensions(&glfw_extension_count);
+    auto glfw_extensions = context.get_glfw_extensions(&glfw_extension_count);
     
     std::vector<const char*> required_extensions
     {

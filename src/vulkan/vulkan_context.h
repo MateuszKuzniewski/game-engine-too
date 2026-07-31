@@ -20,7 +20,7 @@ namespace get
 
         void create_vulkan_instance(const glfw_context& context, const std::string& title);
         
-        [[nodiscard]] std::vector<const char*> get_vulkan_extensions(const glfw_context& glfwContext) const;
+        [[nodiscard]] std::vector<const char*> get_vulkan_extensions(const glfw_context& context) const;
         [[nodiscard]] std::vector<const char*> get_vulkan_validation_layers() const;
 
         static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
