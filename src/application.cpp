@@ -4,17 +4,18 @@
 
 get::application::application()
 {
+    std::println("{0}", "SYSTEM: Application was created");
     get::window_settings settings
     {
         .width = 1280,
         .height = 720,
         .title = "Game Engine Too"
     };
-
-    _render_context = std::make_unique<render_context>(settings.title);
+    
+    _glfw_context = std::make_unique<glfw_context>();
+    _vulkan_context = std::make_unique<vulkan_context>(*_glfw_context, settings.title);
     _window = std::make_unique<window>(settings);
-    _surface = std::make_unique<vulkan_surface>(*_window, _render_context->GetInstance());
-    std::println("{0}", "SYSTEM: Application was created");
+    _surface = std::make_unique<vulkan_surface>(*_window, _vulkan_context->GetInstance());
 }
 
 get::application::~application()
