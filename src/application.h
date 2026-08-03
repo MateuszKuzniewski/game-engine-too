@@ -1,9 +1,12 @@
 #pragma once
 #include <memory>
 #include "window.h"
+#include "glfw_context.h"
 #include "vulkan_surface.h"
 #include "vulkan_context.h"
-#include "glfw_context.h"
+#include "vulkan_queue_family.h"
+#include "vulkan_physical_device.h"
+#include "vulkan_device.h"
 
 namespace get
 {   
@@ -27,5 +30,8 @@ namespace get
         std::unique_ptr<vulkan_context> _vulkan_context;
         std::unique_ptr<window> _window;
         std::unique_ptr<vulkan_surface> _surface;
+        std::unique_ptr<vulkan_physical_device> _physical_device;
+        std::unique_ptr<vulkan_queue_family> _queue_family;
+        std::unique_ptr<vulkan_device> _vulkan_device;
     };
 }

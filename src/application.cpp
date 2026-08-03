@@ -15,7 +15,10 @@ get::application::application()
     _glfw_context = std::make_unique<glfw_context>();
     _vulkan_context = std::make_unique<vulkan_context>(*_glfw_context, settings.title);
     _window = std::make_unique<window>(settings);
-    _surface = std::make_unique<vulkan_surface>(*_window, _vulkan_context->GetInstance());
+    _surface = std::make_unique<vulkan_surface>(*_window, _vulkan_context->get_instance());
+    _physical_device = std::make_unique<vulkan_physical_device>(_vulkan_context->get_instance());
+    _queue_family = std::make_unique<vulkan_queue_family>(_physical_device->get_device(), _surface->get_surface());
+    _vulkan_device = std::make_unique<vulkan_device>(_physical_device->get_device(), _queue_family->get_queue_family_id());
 }
 
 get::application::~application()
