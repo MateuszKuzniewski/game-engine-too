@@ -16,7 +16,7 @@ namespace get
         vulkan_queue_family& operator=(const vulkan_queue_family&) = delete;
         vulkan_queue_family& operator=(vulkan_queue_family&&) = delete;
 
-        u32 get_queue_family_id() const;
+        [[nodiscard]] u32 get_queue_family_id() const;
     
     private:
 

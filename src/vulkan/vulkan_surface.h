@@ -16,7 +16,7 @@ namespace get
         vulkan_surface& operator=(const vulkan_surface&) = delete;
         vulkan_surface& operator=(vulkan_surface&&) = delete;
 
-        VkSurfaceKHR get_surface() const;
+        [[nodiscard]] VkSurfaceKHR get_surface() const;
 
     private:
         VkSurfaceKHR _surface;
