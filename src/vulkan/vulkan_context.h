@@ -13,7 +13,7 @@ namespace get
         vulkan_context(const glfw_context& context, const std::string& title);
         ~vulkan_context();
 
-        VkInstance GetInstance() { return _instance; }
+        VkInstance get_instance() { return _instance; }
 
     private:  
 

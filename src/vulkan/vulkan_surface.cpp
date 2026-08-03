@@ -14,3 +14,8 @@ get::vulkan_surface::~vulkan_surface()
 {
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
 }
+
+VkSurfaceKHR get::vulkan_surface::get_surface() const
+{
+    return _surface;
+}
