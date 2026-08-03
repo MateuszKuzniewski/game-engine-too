@@ -33,11 +33,16 @@ namespace get
         vulkan_device(VkPhysicalDevice device, u32 queueFamilyId);
         ~vulkan_device();
 
+        [[nodiscard]] VkDevice get_device() const;
+        [[nodiscard]] VkQueue get_queue() const;
+
     private:
+
         void check_supported_features(VkPhysicalDevice device) const;
 
     private:
 
         VkDevice _device;
+        VkQueue _queue;
     };
 }

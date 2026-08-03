@@ -39,6 +39,13 @@ get::vulkan_device::vulkan_device(VkPhysicalDevice device, u32 queueFamilyId)
     {
         throw std::runtime_error("SYSTEM: Failed to create logical device");
     }
+
+    vkGetDeviceQueue(_device, queueFamilyId, 0, &_queue);
+
+    if (_queue)
+    {
+        throw std::runtime_error("SYSTEM: VkQueue was not created");
+    }
 }
 
 get::vulkan_device::~vulkan_device()
@@ -73,3 +80,15 @@ void get::vulkan_device::check_supported_features(VkPhysicalDevice device) const
         throw std::runtime_error("SYSTEM: Missing required Vulkan features: " + missing);
     }
 }
+
+VkDevice get::vulkan_device::get_device() const
+{
+    return _device;
+}
+
+VkQueue get::vulkan_device::get_queue() const
+{
+    return _queue;
+}
+
+
