@@ -42,7 +42,7 @@ get::vulkan_device::vulkan_device(VkPhysicalDevice device, u32 queueFamilyId)
 
     vkGetDeviceQueue(_device, queueFamilyId, 0, &_queue);
 
-    if (_queue)
+    if (!_queue)
     {
         throw std::runtime_error("SYSTEM: VkQueue was not created");
     }
