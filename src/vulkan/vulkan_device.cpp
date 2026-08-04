@@ -39,7 +39,7 @@ get::vulkan_device::vulkan_device(VkPhysicalDevice device, u32 queueFamilyId)
     {
         throw std::runtime_error("SYSTEM: Failed to create logical device");
     }
-
+    
     vkGetDeviceQueue(_device, queueFamilyId, 0, &_queue);
 
     if (!_queue)
@@ -90,5 +90,3 @@ VkQueue get::vulkan_device::get_queue() const
 {
     return _queue;
 }
-
-
