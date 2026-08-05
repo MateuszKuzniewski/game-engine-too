@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 4.0)
 project(get LANGUAGES CXX)
 
-find_package(Vulkan REQUIRED COMPONENTS volk shaderc_combined)
+find_package(Vulkan REQUIRED COMPONENTS volk)
+find_library(SHADERC_SHARED_LIB shaderc_shared REQUIRED)
 
 include(FetchContent)
 
@@ -80,10 +81,9 @@ target_link_options(get PRIVATE
 target_link_libraries(get PRIVATE
     Vulkan::Vulkan
     Vulkan::volk
-    Vulkan::shaderc_combined
+    ${SHADERC_SHARED_LIB}
     glm::glm
     glfw
     GPUOpen::VulkanMemoryAllocator
-    Threads::Threads
     stdc++
 )
