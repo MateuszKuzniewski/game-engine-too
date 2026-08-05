@@ -11,6 +11,10 @@ namespace get
         vulkan_memory_allocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device);
         ~vulkan_memory_allocator();
 
+        [[nodiscard]] VmaAllocator get_allocator() const;
+
+        
+
     private:
 
         VmaAllocator _vma_allocator;

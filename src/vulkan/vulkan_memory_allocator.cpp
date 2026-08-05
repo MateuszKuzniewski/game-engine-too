@@ -28,3 +28,8 @@ get::vulkan_memory_allocator::~vulkan_memory_allocator()
     if (_vma_allocator)
         vmaDestroyAllocator(_vma_allocator);
 }
+
+VmaAllocator get::vulkan_memory_allocator::get_allocator() const
+{
+    return _vma_allocator;
+}

@@ -21,6 +21,7 @@ namespace get
         VkColorSpaceKHR _color_space;
         VkDevice _device;
         
+        
         u32 _width;
         u32 _height;
         u32 _image_count;
