@@ -44,7 +44,7 @@ get::vulkan_device::vulkan_device(VkPhysicalDevice device, u32 queueFamilyId)
 
     if (!_queue)
     {
-        throw std::runtime_error("SYSTEM: VkQueue was not created");
+        throw std::runtime_error("SYSTEM: Failed to create vulkan queue");
     }
 }
 
