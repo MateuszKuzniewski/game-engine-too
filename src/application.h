@@ -9,6 +9,8 @@
 #include "vulkan_device.h"
 #include "vulkan_memory_allocator.h"
 #include "vulkan_swapchain.h"
+#include "depth_buffer.h"
+
 
 namespace get
 {   
@@ -37,5 +39,6 @@ namespace get
         std::unique_ptr<vulkan_device> _vulkan_device;
         std::unique_ptr<vulkan_memory_allocator> _vma;
         std::unique_ptr<vulkan_swapchain> _swapchain;
+        std::unique_ptr<depth_buffer> _depth_buffer;
     };
 }

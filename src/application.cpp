@@ -23,11 +23,18 @@ get::application::application()
                              _vulkan_context->get_instance(), 
                              _physical_device->get_device(), 
                              _vulkan_device->get_device());
+
     _swapchain =        std::make_unique<vulkan_swapchain>(
                              _vulkan_device->get_device(), 
                              _physical_device->get_device(),
                              _surface->get_surface(),
                              settings.width,
+                             settings.height);
+
+    _depth_buffer =     std::make_unique<depth_buffer>(
+                             _vulkan_device->get_device(), 
+                             _vma->get_allocator(), 
+                             settings.width, 
                              settings.height);
 }
 
