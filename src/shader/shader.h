@@ -23,7 +23,7 @@ namespace get
         shader& operator=(const shader&) = delete;
         shader& operator=(shader&&) = delete;
 
-        void compile(const std::string& filename, shader_type type, VkShaderModule module);
+        void compile(const std::string& filename, const shader_type type, VkShaderModule module);
 
         [[nodiscard]] VkShaderModule get_shader_module() const;
 

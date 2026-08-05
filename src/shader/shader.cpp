@@ -1,7 +1,6 @@
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
-#include <format>
 #include "types.h"
 #include "shader.h"
 #include "directories.h"
@@ -13,7 +12,7 @@ get::shader::shader(VkDevice device, const std::string& vertshader, const std::s
     compile(fragShader, shader_type::FRAG, _frag_shader_module);
 }
 
-void get::shader::compile(const std::string& filename, shader_type type, VkShaderModule module)
+void get::shader::compile(const std::string& filename, const shader_type type, VkShaderModule module)
 {
     auto shaderPath = std::filesystem::path(get::directories::shader_path()) / filename;
     const std::string src = read_file(shaderPath);
@@ -56,7 +55,7 @@ void get::shader::compile(const std::string& filename, shader_type type, VkShade
 
 shaderc_shader_kind get::shader::convert_shader_type(shader_type type)
 {
-    switch(type)
+    switch (type)
     {
         case shader_type::VERT: return shaderc_vertex_shader;
         case shader_type::FRAG: return shaderc_fragment_shader;
