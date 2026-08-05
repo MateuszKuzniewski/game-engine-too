@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
+#include <format>
 #include "types.h"
 #include "shader.h"
 #include "directories.h"
@@ -14,14 +15,14 @@ get::shader::shader(VkDevice device, const std::string& vertshader, const std::s
 
 void get::shader::compile(const std::string& filename, shader_type type, VkShaderModule module)
 {
-    const std::string shaderPath = get::directories::shader_path();
+    auto shaderPath = std::filesystem::path(get::directories::shader_path()) / filename;
     const std::string src = read_file(shaderPath);
-
+    
     auto kind = convert_shader_type(type);
 
     if (src.empty())
     {
-        throw std::runtime_error("SYSTEM: Failed to read shader file");
+        throw std::runtime_error("SYSTEM: Failed to read shader file: " + filename);
     }
 
     shaderc::Compiler compiler;
@@ -34,9 +35,7 @@ void get::shader::compile(const std::string& filename, shader_type type, VkShade
 
     if (res.GetCompilationStatus() != shaderc_compilation_status_success)
     {
-        std::string c = "SYSTEM: Shader compalition error: ";
-        std::string z = c + res.GetErrorMessage();
-        throw std::runtime_error(z);
+        throw std::runtime_error("SYSTEM: Shader compalition error: " + res.GetErrorMessage());
     }
 
     const size_t shaderSize = (res.cend() - res.cbegin()) * sizeof(u32);
