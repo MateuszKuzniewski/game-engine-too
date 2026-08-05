@@ -36,7 +36,9 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.h
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.cpp
     ${PROJECT_SOURCE_DIR}/src/glfw/*.h
-    ${PROJECT_SOURCE_DIR}/src/glfw/*.cpp)
+    ${PROJECT_SOURCE_DIR}/src/glfw/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/buffer/*.h
+    ${PROJECT_SOURCE_DIR}/src/buffer/*.cpp)
 
 
 set(CMAKE_CXX_STANDARD 23)
@@ -52,6 +54,7 @@ add_executable(get ${sources})
 
 target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/buffer
     ${PROJECT_SOURCE_DIR}/src/glfw
     ${PROJECT_SOURCE_DIR}/src/vulkan)
 
