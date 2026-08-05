@@ -38,7 +38,12 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/glfw/*.h
     ${PROJECT_SOURCE_DIR}/src/glfw/*.cpp
     ${PROJECT_SOURCE_DIR}/src/buffer/*.h
-    ${PROJECT_SOURCE_DIR}/src/buffer/*.cpp)
+    ${PROJECT_SOURCE_DIR}/src/buffer/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/shader/*.h
+    ${PROJECT_SOURCE_DIR}/src/shader/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/*.h
+    ${PROJECT_SOURCE_DIR}/src/core/*.cpp
+)
 
 
 set(CMAKE_CXX_STANDARD 23)
@@ -56,7 +61,10 @@ target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/buffer
     ${PROJECT_SOURCE_DIR}/src/glfw
-    ${PROJECT_SOURCE_DIR}/src/vulkan)
+    ${PROJECT_SOURCE_DIR}/src/shader
+    ${PROJECT_SOURCE_DIR}/src/vulkan
+    ${PROJECT_SOURCE_DIR}/src/core
+)
 
 target_compile_options(get PRIVATE
     -g
@@ -76,4 +84,6 @@ target_link_libraries(get PRIVATE
     glm::glm
     glfw
     GPUOpen::VulkanMemoryAllocator
+    Threads::Threads
+    stdc++
 )
