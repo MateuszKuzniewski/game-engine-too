@@ -11,6 +11,7 @@
 #include "vulkan_swapchain.h"
 #include "depth_buffer.h"
 #include "shader.h"
+#include "vulkan_pipeline.h"
 
 namespace get
 {   
@@ -41,6 +42,7 @@ namespace get
         std::unique_ptr<vulkan_swapchain> _swapchain;
         std::unique_ptr<depth_buffer> _depth_buffer;
         std::unique_ptr<shader> _shader;
+        std::unique_ptr<vulkan_pipline> _vulkan_pipeline;
 
     };
 }

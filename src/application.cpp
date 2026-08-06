@@ -46,6 +46,8 @@ get::application::application()
                             "shader.vert",
                             "shader.frag");
 
+    _vulkan_pipeline =  std::make_unique<vulkan_pipline>( _vulkan_device->get_device(), *_shader);
+
 }
 
 get::application::~application()

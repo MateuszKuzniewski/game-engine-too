@@ -23,19 +23,17 @@ namespace get
         shader& operator=(const shader&) = delete;
         shader& operator=(shader&&) = delete;
 
-        void compile(const std::string& filename, const shader_type type, VkShaderModule module);
-
-        [[nodiscard]] VkShaderModule get_shader_module() const;
+        VkShaderModule compile(shader_type type) const;
 
     private:
 
         [[nodiscard]] std::string read_file(const std::string& path) const;
-        shaderc_shader_kind convert_shader_type(shader_type type);
+        shaderc_shader_kind convert_shader_type(shader_type type) const;
 
     private:
+        std::string _vert_shader_name;
+        std::string _frag_shader_name;
 
         VkDevice _device;
-        VkShaderModule _vert_shader_module;
-        VkShaderModule _frag_shader_module;
     };
 }

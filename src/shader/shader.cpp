@@ -5,16 +5,26 @@
 #include "shader.h"
 #include "directories.h"
 
+
 get::shader::shader(VkDevice device, const std::string& vertshader, const std::string& fragShader)
-    : _device(device)
+    :   _vert_shader_name(vertshader),
+        _frag_shader_name(fragShader),
+        _device(device)
 {
-    compile(vertshader, shader_type::VERT, _vert_shader_module);
-    compile(fragShader, shader_type::FRAG, _frag_shader_module);
 }
 
-void get::shader::compile(const std::string& filename, const shader_type type, VkShaderModule module)
+VkShaderModule get::shader::compile(shader_type type) const
 {
+    std::string filename = "";
+    switch (type)
+    {
+        case shader_type::VERT: filename = _vert_shader_name; break;
+        case shader_type::FRAG: filename = _frag_shader_name; break;
+    }
+
     auto shaderPath = std::filesystem::path(get::directories::shader_path()) / filename;
+    // std::string shaderPath = "/home/v/dev/git/game-engine-too/shaders/" + filename;
+    shaderPath = std::filesystem::path(get::directories::shader_path()) / filename;
     const std::string src = read_file(shaderPath);
     
     auto kind = convert_shader_type(type);
@@ -44,16 +54,18 @@ void get::shader::compile(const std::string& filename, const shader_type type, V
         .codeSize = shaderSize,
         .pCode = res.cbegin()
     };
-
+    
+    VkShaderModule module = VK_NULL_HANDLE;
     VkResult result = vkCreateShaderModule(_device, &moduleCreateInfo, nullptr, &module);
     if (result != VK_SUCCESS)
     {
         throw std::runtime_error("SYSTEM: Failed to create shader module");
     }
 
+    return module;
 }
 
-shaderc_shader_kind get::shader::convert_shader_type(shader_type type)
+shaderc_shader_kind get::shader::convert_shader_type(shader_type type) const
 {
     switch (type)
     {
