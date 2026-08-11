@@ -14,6 +14,7 @@ namespace get
         ~vulkan_sempahore();
 
     private:
+
         VkDevice _device;
         u32 _max_frames_in_flight;
         VkSemaphore _timeline_semaphore;

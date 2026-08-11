@@ -5,12 +5,12 @@
 
 namespace get
 {
-    class vulkan_pipline
+    class vulkan_pipeline
     {
     public:
 
-        vulkan_pipline(VkDevice device, const shader& shader);
-        ~vulkan_pipline();
+        vulkan_pipeline(VkDevice device, const shader& shader);
+        ~vulkan_pipeline();
         
         [[nodiscard]] VkPipeline get_pipeline() const;
 

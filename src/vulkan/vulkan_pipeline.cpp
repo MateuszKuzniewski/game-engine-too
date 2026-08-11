@@ -3,7 +3,7 @@
 #include "types.h"
 #include "vulkan_pipeline.h"
 
-get::vulkan_pipline::vulkan_pipline(VkDevice device, const shader& shader)
+get::vulkan_pipeline::vulkan_pipeline(VkDevice device, const shader& shader)
     : _shader_entry_point("main"), _device(device)
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo
@@ -146,13 +146,13 @@ get::vulkan_pipline::vulkan_pipline(VkDevice device, const shader& shader)
     vkDestroyShaderModule(device, frag, nullptr);
 }
 
-get::vulkan_pipline::~vulkan_pipline()
+get::vulkan_pipeline::~vulkan_pipeline()
 {
     vkDestroyPipelineLayout(_device, _pipeline_layout, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
 }
 
-VkPipeline get::vulkan_pipline::get_pipeline() const
+VkPipeline get::vulkan_pipeline::get_pipeline() const
 {
     return _pipeline;
 }

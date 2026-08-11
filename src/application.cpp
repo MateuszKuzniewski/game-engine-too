@@ -46,7 +46,7 @@ get::application::application()
                             "shader.vert",
                             "shader.frag");
 
-    _vulkan_pipeline =  std::make_unique<vulkan_pipline>( _vulkan_device->get_device(), *_shader);
+    _vulkan_pipeline =  std::make_unique<vulkan_pipeline>( _vulkan_device->get_device(), *_shader);
 
     _semaphore = std::make_unique<vulkan_sempahore>(_vulkan_device->get_device(), _frame_resources);
 

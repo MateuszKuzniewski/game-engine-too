@@ -46,7 +46,7 @@ namespace get
         std::unique_ptr<vulkan_swapchain> _swapchain;
         std::unique_ptr<depth_buffer> _depth_buffer;
         std::unique_ptr<shader> _shader;
-        std::unique_ptr<vulkan_pipline> _vulkan_pipeline;
+        std::unique_ptr<vulkan_pipeline> _vulkan_pipeline;
         std::unique_ptr<vulkan_sempahore> _semaphore;
         std::unique_ptr<command_pool> _command_pool;
         std::unique_ptr<command_buffer> _command_buffer;
