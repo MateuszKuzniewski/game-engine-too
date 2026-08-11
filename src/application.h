@@ -9,9 +9,13 @@
 #include "vulkan_device.h"
 #include "vulkan_memory_allocator.h"
 #include "vulkan_swapchain.h"
+#include "vulkan_semaphore.h"
+#include "vulkan_pipeline.h"
 #include "depth_buffer.h"
 #include "shader.h"
-#include "vulkan_pipeline.h"
+#include "frame_resources.h"
+#include "command_pool.h"
+#include "command_buffer.h"
 
 namespace get
 {   
@@ -43,6 +47,10 @@ namespace get
         std::unique_ptr<depth_buffer> _depth_buffer;
         std::unique_ptr<shader> _shader;
         std::unique_ptr<vulkan_pipline> _vulkan_pipeline;
+        std::unique_ptr<vulkan_sempahore> _semaphore;
+        std::unique_ptr<command_pool> _command_pool;
+        std::unique_ptr<command_buffer> _command_buffer;
 
+        std::vector<frame_resource> _frame_resources;
     };
 }

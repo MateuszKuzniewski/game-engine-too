@@ -48,10 +48,17 @@ get::application::application()
 
     _vulkan_pipeline =  std::make_unique<vulkan_pipline>( _vulkan_device->get_device(), *_shader);
 
+    _semaphore = std::make_unique<vulkan_sempahore>(_vulkan_device->get_device(), _frame_resources);
+
+    _command_pool = std::make_unique<command_pool>(_vulkan_device->get_device(), _queue_family->get_queue_family_id(), _frame_resources);
+
+    _command_buffer = std::make_unique<command_buffer>(_vulkan_device->get_device(), _frame_resources);
+
 }
 
 get::application::~application()
 {
+    vkDeviceWaitIdle(_vulkan_device->get_device());
     std::println("{0}", "SYSTEM: Application was destroyed");
 }
 
