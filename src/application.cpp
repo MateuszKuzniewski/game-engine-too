@@ -59,6 +59,12 @@ get::application::application()
 get::application::~application()
 {
     vkDeviceWaitIdle(_vulkan_device->get_device());
+
+    for (auto& res : _frame_resources)
+    {
+        vkDestroySemaphore(_vulkan_device->get_device(), res.image_acquired_semaphore, nullptr);
+        vkDestroyCommandPool(_vulkan_device->get_device(), res.command_pool, nullptr);
+    }
     std::println("{0}", "SYSTEM: Application was destroyed");
 }
 
