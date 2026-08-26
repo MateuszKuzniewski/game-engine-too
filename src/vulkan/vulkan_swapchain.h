@@ -9,10 +9,16 @@ namespace get
     {
     public:
 
-        vulkan_swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, u32 width, u32 height);
+        vulkan_swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surfac);
         ~vulkan_swapchain();
 
-        [[nodiscard]] VkSwapchainKHR get_swapchain() const;
+        [[nodiscard]] VkSwapchainKHR get_swapchain();
+        [[nodiscard]] VkImage* get_swapchain_images();
+        [[nodiscard]] VkImageView* get_swapchain_image_views();
+        [[nodiscard]] VkSemaphore* get_render_complete_semaphores();
+
+        void create_swapchain(u32 width, u32 height);
+        void destroy_swapchain();
 
     private:
 
@@ -20,10 +26,9 @@ namespace get
         VkFormat _swapchain_format;
         VkColorSpaceKHR _color_space;
         VkDevice _device;
+        VkSurfaceKHR _surface;
+        VkPhysicalDevice _physical_device;
         
-        
-        u32 _width;
-        u32 _height;
         u32 _image_count;
 
         std::vector<VkImage> _swapchain_images;

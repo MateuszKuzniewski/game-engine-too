@@ -17,6 +17,9 @@ namespace get
         depth_buffer& operator=(const depth_buffer&) = delete;
         depth_buffer& operator=(depth_buffer&&) = delete;
 
+        [[nodiscard]] VkImage get_image() const;
+        [[nodiscard]] VkImageView get_image_view() const;
+
     private:
 
         VkDevice _device;

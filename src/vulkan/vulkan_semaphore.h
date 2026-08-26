@@ -10,13 +10,14 @@ namespace get
     {
     public:
 
-        vulkan_sempahore(VkDevice device, std::vector<frame_resource>& frameResources);
+        vulkan_sempahore(VkDevice device, std::vector<frame_resource>& frameResources, u32 maxFramesInFlight);
         ~vulkan_sempahore();
+
+        [[nodiscard]] VkSemaphore get_semaphore();
 
     private:
 
         VkDevice _device;
-        u32 _max_frames_in_flight;
         VkSemaphore _timeline_semaphore;
     };
 }

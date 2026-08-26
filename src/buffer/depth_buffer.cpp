@@ -57,4 +57,14 @@ get::depth_buffer::~depth_buffer()
 {
     vkDestroyImageView(_device, _depth_image_view, nullptr);
     vmaDestroyImage(_allocator, _depth_image, _depth_image_allocation);
-}   
+}
+
+VkImage get::depth_buffer::get_image() const
+{
+    return _depth_image;
+}
+
+VkImageView get::depth_buffer::get_image_view() const
+{
+    return _depth_image_view;
+}

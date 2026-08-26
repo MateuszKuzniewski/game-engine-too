@@ -35,6 +35,20 @@ namespace get
         void shutdown();
 
     private:
+
+        void render(int width, int height);
+
+    private:
+
+        u32 _frame_index;
+        u32 _max_frames_in_flight;
+
+        u64 _next_signal_value;
+        
+        bool recreateSwapchain = false;
+
+        std::vector<frame_resource> _frame_resources;
+        
         std::unique_ptr<glfw_context> _glfw_context;
         std::unique_ptr<vulkan_context> _vulkan_context;
         std::unique_ptr<window> _window;
@@ -50,7 +64,5 @@ namespace get
         std::unique_ptr<vulkan_sempahore> _semaphore;
         std::unique_ptr<command_pool> _command_pool;
         std::unique_ptr<command_buffer> _command_buffer;
-
-        std::vector<frame_resource> _frame_resources;
     };
 }

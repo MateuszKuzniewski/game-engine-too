@@ -1,16 +1,26 @@
 #include "vulkan_swapchain.h"
 #include <stdexcept>
 
-get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, u32 width, u32 height) 
+get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) 
     :   _swapchain_format(VK_FORMAT_B8G8R8A8_SRGB), 
         _color_space(VK_COLORSPACE_SRGB_NONLINEAR_KHR),
         _device(device),
-        _width(width), 
-        _height(height),
+        _surface(surface),
+        _physical_device(physicalDevice),
         _image_count(0)
 {
+}
+
+get::vulkan_swapchain::~vulkan_swapchain()
+{
+    destroy_swapchain();
+}
+
+
+void get::vulkan_swapchain::create_swapchain(u32 width, u32 height)
+{
     VkSurfaceCapabilitiesKHR surfaceCapabilites{};
-    VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilites);
+    VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physical_device, _surface, &surfaceCapabilites);
     if (res != VK_SUCCESS)
     {
         throw std::runtime_error("SYSTEM: Failed to retrieve surface capabilites");
@@ -25,11 +35,11 @@ get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physic
     VkSwapchainCreateInfoKHR swapchainCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .surface = surface,
+        .surface = _surface,
         .minImageCount = requestedImageCount,
         .imageFormat = _swapchain_format,
         .imageColorSpace = _color_space,
-        .imageExtent { .width = _width, .height = _height },
+        .imageExtent { .width = width, .height = height },
         .imageArrayLayers = 1,
         .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
         .preTransform = surfaceCapabilites.currentTransform,
@@ -37,17 +47,17 @@ get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physic
         .presentMode = VK_PRESENT_MODE_FIFO_KHR
     };
     
-    res = vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &_swapchain); 
+    res = vkCreateSwapchainKHR(_device, &swapchainCreateInfo, nullptr, &_swapchain); 
 
     if (res != VK_SUCCESS)
     {
         throw std::runtime_error("SYSTEM: Failed to create swapchain");
     }
 
-    vkGetSwapchainImagesKHR(device, _swapchain, &_image_count, nullptr);
+    vkGetSwapchainImagesKHR(_device, _swapchain, &_image_count, nullptr);
     _swapchain_images.resize(_image_count);
 
-    vkGetSwapchainImagesKHR(device, _swapchain, &_image_count, _swapchain_images.data());
+    vkGetSwapchainImagesKHR(_device, _swapchain, &_image_count, _swapchain_images.data());
     _swapchain_image_views.resize(_image_count);
 
     for (size_t i = 0; i < _swapchain_image_views.size(); i++)
@@ -68,7 +78,7 @@ get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physic
             }
         };
 
-        res = vkCreateImageView(device, &imageViewInfo, nullptr, &_swapchain_image_views[i]);
+        res = vkCreateImageView(_device, &imageViewInfo, nullptr, &_swapchain_image_views[i]);
         
         if (res != VK_SUCCESS)
         {
@@ -81,7 +91,7 @@ get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physic
     {
         VkSemaphoreCreateInfo semaphoreInfo { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
         
-        res = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore);
+        res = vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &semaphore);
         if (res != VK_SUCCESS)
         {
             throw std::runtime_error("SYSTEM: Failed to create render-complete semaphore");
@@ -89,7 +99,7 @@ get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physic
     }
 }
 
-get::vulkan_swapchain::~vulkan_swapchain()
+void get::vulkan_swapchain::destroy_swapchain()
 {
     for (auto& imageView : _swapchain_image_views)
     {
@@ -105,9 +115,25 @@ get::vulkan_swapchain::~vulkan_swapchain()
 
     if (_swapchain)
         vkDestroySwapchainKHR(_device, _swapchain, nullptr);
+
 }
 
-VkSwapchainKHR get::vulkan_swapchain::get_swapchain() const
+VkSwapchainKHR get::vulkan_swapchain::get_swapchain()
 {
     return _swapchain;
+}
+
+VkImage* get::vulkan_swapchain::get_swapchain_images()
+{
+    return _swapchain_images.data();
+}
+
+VkImageView* get::vulkan_swapchain::get_swapchain_image_views()
+{
+    return _swapchain_image_views.data();
+}
+
+VkSemaphore* get::vulkan_swapchain::get_render_complete_semaphores()
+{
+    return _render_complete_semaphores.data();
 }
