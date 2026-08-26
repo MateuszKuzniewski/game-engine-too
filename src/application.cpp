@@ -12,7 +12,7 @@ get::application::application() : _frame_index(0), _max_frames_in_flight(2), _ne
     get::window_settings settings
     {
         .width = 1280,
-        .height = 992,
+        .height = 992, // TO DO: Fix issue where height is less than height of the color attachment causing validation errors
         .title = "Game Engine Too"
     };
     

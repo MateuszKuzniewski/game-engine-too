@@ -123,17 +123,17 @@ VkSwapchainKHR get::vulkan_swapchain::get_swapchain()
     return _swapchain;
 }
 
-VkImage* get::vulkan_swapchain::get_swapchain_images()
+std::vector<VkImage>& get::vulkan_swapchain::get_swapchain_images()
 {
-    return _swapchain_images.data();
+    return _swapchain_images;
 }
 
-VkImageView* get::vulkan_swapchain::get_swapchain_image_views()
+std::vector<VkImageView>& get::vulkan_swapchain::get_swapchain_image_views()
 {
-    return _swapchain_image_views.data();
+    return _swapchain_image_views;
 }
 
-VkSemaphore* get::vulkan_swapchain::get_render_complete_semaphores()
+std::vector<VkSemaphore>& get::vulkan_swapchain::get_render_complete_semaphores()
 {
-    return _render_complete_semaphores.data();
+    return _render_complete_semaphores;
 }

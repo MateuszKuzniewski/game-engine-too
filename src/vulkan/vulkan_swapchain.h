@@ -13,9 +13,10 @@ namespace get
         ~vulkan_swapchain();
 
         [[nodiscard]] VkSwapchainKHR get_swapchain();
-        [[nodiscard]] VkImage* get_swapchain_images();
-        [[nodiscard]] VkImageView* get_swapchain_image_views();
-        [[nodiscard]] VkSemaphore* get_render_complete_semaphores();
+
+        [[nodiscard]] std::vector<VkImage>& get_swapchain_images();
+        [[nodiscard]] std::vector<VkImageView>& get_swapchain_image_views();
+        [[nodiscard]] std::vector<VkSemaphore>& get_render_complete_semaphores();
 
         void create_swapchain(u32 width, u32 height);
         void destroy_swapchain();
