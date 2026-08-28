@@ -6,7 +6,6 @@ get::depth_buffer::depth_buffer(VkDevice device, VmaAllocator allocator, u32 wid
         _allocator(allocator),
         _depth_format(VK_FORMAT_D32_SFLOAT)
 {
-    create(width, height);
 }
 
 get::depth_buffer::~depth_buffer()

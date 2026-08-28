@@ -41,6 +41,8 @@ get::application::application() : _frame_index(0), _max_frames_in_flight(2), _ne
                             settings.width, 
                             settings.height);
 
+    _depth_buffer->create(settings.width, settings.height);
+
     _shader =           std::make_unique<shader>(
                             _vulkan_device->get_device(),
                             "shader.vert",
