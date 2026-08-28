@@ -3,7 +3,7 @@
 #include "application.h"
 #include "directories.h"
 
-get::application::application() : _frame_index(0), _max_frames_in_flight(2), _next_signal_value(0), _frame_resources(2)
+get::application::application() : _frame_index(0), _max_frames_in_flight(2), _next_signal_value(2), _frame_resources(2)
 {
     std::println("{0}", "SYSTEM: Application was created");
     std::println("{0}{1}", "SYSTEM: Project path is set to: ", get::directories::project_path());
@@ -33,7 +33,7 @@ get::application::application() : _frame_index(0), _max_frames_in_flight(2), _ne
                             _physical_device->get_device(),
                             _surface->get_surface());
 
-    _swapchain->create_swapchain(settings.width, settings.height);
+    _swapchain->create(settings.width, settings.height);
 
     _depth_buffer =     std::make_unique<depth_buffer>(
                             _vulkan_device->get_device(), 
@@ -72,11 +72,26 @@ void get::application::run()
 {
     int currentWidth = 0;
     int currentHeight = 0;
+    int lastWidth = 0;
+    int lastHeight = 0;
     auto window = _window->get_current_window();
 
-    while(!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window))
     {
         glfwGetFramebufferSize(window, &currentWidth, &currentHeight);
+
+        while (currentWidth == 0 || currentHeight == 0)
+        {
+            glfwGetFramebufferSize(window, &currentWidth, &currentHeight);
+            glfwWaitEvents();
+        }
+        
+        if (currentWidth != lastWidth || currentHeight != lastHeight)
+        {
+            recreateSwapchain = true;
+            lastWidth = currentWidth;
+            lastHeight = currentHeight;
+        }
 
         render(currentWidth, currentHeight);
         glfwPollEvents();
@@ -90,13 +105,15 @@ void get::application::render(int width, int height)
     if (recreateSwapchain)
     {
         vkDeviceWaitIdle(_vulkan_device->get_device());
-        _swapchain->destroy_swapchain();
-        _swapchain->create_swapchain(width, height);
+        _swapchain->destroy();
+        _swapchain->create(width, height);
+        _depth_buffer->destroy();
+        _depth_buffer->create(width, height);
         recreateSwapchain = false;
     }
 
     const u32 frameResIndex = _frame_index++ % _max_frames_in_flight;
-    const u64 signalValue = _next_signal_value++;
+    const u64 signalValue = ++_next_signal_value;
     const u64 waitValue = (signalValue > _max_frames_in_flight) ? (signalValue - _max_frames_in_flight) : 0;
 
     auto semaphore = _semaphore->get_semaphore();

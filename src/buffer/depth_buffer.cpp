@@ -6,6 +6,16 @@ get::depth_buffer::depth_buffer(VkDevice device, VmaAllocator allocator, u32 wid
         _allocator(allocator),
         _depth_format(VK_FORMAT_D32_SFLOAT)
 {
+    create(width, height);
+}
+
+get::depth_buffer::~depth_buffer()
+{
+    destroy();
+}
+
+void get::depth_buffer::create(u32 width, u32 height)
+{
     VkImageCreateInfo depthCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -26,7 +36,7 @@ get::depth_buffer::depth_buffer(VkDevice device, VmaAllocator allocator, u32 wid
         .usage = VMA_MEMORY_USAGE_AUTO
     };
 
-    VkResult res = vmaCreateImage(allocator, &depthCreateInfo, &allocationInfo, &_depth_image, &_depth_image_allocation, nullptr);
+    VkResult res = vmaCreateImage(_allocator, &depthCreateInfo, &allocationInfo, &_depth_image, &_depth_image_allocation, nullptr);
     if (res != VK_SUCCESS)
     {
         throw std::runtime_error("SYSTEM: Failed to allocate resources");
@@ -46,14 +56,15 @@ get::depth_buffer::depth_buffer(VkDevice device, VmaAllocator allocator, u32 wid
         }
     };
 
-    res = vkCreateImageView(device, &depthImageViewInfo, nullptr, &_depth_image_view);
+    res = vkCreateImageView(_device, &depthImageViewInfo, nullptr, &_depth_image_view);
     if (res != VK_SUCCESS)
     {
         throw std::runtime_error("SYSTEM: Failed to create image view");
     }
+
 }
 
-get::depth_buffer::~depth_buffer()
+void get::depth_buffer::destroy()
 {
     vkDestroyImageView(_device, _depth_image_view, nullptr);
     vmaDestroyImage(_allocator, _depth_image, _depth_image_allocation);

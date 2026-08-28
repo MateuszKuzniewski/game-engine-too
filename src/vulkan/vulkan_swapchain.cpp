@@ -13,11 +13,11 @@ get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physic
 
 get::vulkan_swapchain::~vulkan_swapchain()
 {
-    destroy_swapchain();
+    destroy();
 }
 
 
-void get::vulkan_swapchain::create_swapchain(u32 width, u32 height)
+void get::vulkan_swapchain::create(u32 width, u32 height)
 {
     VkSurfaceCapabilitiesKHR surfaceCapabilites{};
     VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physical_device, _surface, &surfaceCapabilites);
@@ -99,7 +99,7 @@ void get::vulkan_swapchain::create_swapchain(u32 width, u32 height)
     }
 }
 
-void get::vulkan_swapchain::destroy_swapchain()
+void get::vulkan_swapchain::destroy()
 {
     for (auto& imageView : _swapchain_image_views)
     {

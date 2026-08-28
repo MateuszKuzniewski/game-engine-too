@@ -16,7 +16,10 @@ namespace get
         depth_buffer(depth_buffer&&) = delete;
         depth_buffer& operator=(const depth_buffer&) = delete;
         depth_buffer& operator=(depth_buffer&&) = delete;
-
+        
+        void create(u32 width, u32 height);
+        void destroy();
+            
         [[nodiscard]] VkImage get_image() const;
         [[nodiscard]] VkImageView get_image_view() const;
 
