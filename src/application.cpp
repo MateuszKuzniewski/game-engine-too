@@ -15,6 +15,13 @@ get::application::application() : _frame_index(0), _max_frames_in_flight(2), _ne
         .height = 720, 
         .title = "Game Engine Too"
     };
+
+    get::camera_settings cameraSettings
+    {
+        .fov = 60.f,
+        .near_clip = 0.1f,
+        .far_clip = 10000.f
+    };
     
     _glfw_context =     std::make_unique<glfw_context>();
     _vulkan_context =   std::make_unique<vulkan_context>(*_glfw_context, settings.title);
@@ -55,6 +62,8 @@ get::application::application() : _frame_index(0), _max_frames_in_flight(2), _ne
     _command_pool = std::make_unique<command_pool>(_vulkan_device->get_device(), _queue_family->get_queue_family_id(), _frame_resources);
 
     _command_buffer = std::make_unique<command_buffer>(_vulkan_device->get_device(), _frame_resources);
+
+    _main_camera = std::make_unique<camera>(settings.width, settings.height, cameraSettings);
 
 }
 
@@ -111,6 +120,8 @@ void get::application::render(int width, int height)
         _swapchain->create(width, height);
         _depth_buffer->destroy();
         _depth_buffer->create(width, height);
+        _main_camera->update(width, height);
+
         recreateSwapchain = false;
     }
 
@@ -151,7 +162,7 @@ void get::application::render(int width, int height)
     {
         recreateSwapchain = true;
     }
-   
+
     // begin recording commands
     VkCommandBufferBeginInfo commandBeginInfo
     {
@@ -275,7 +286,13 @@ void get::application::render(int width, int height)
                 .height = static_cast<u32>(height),
             }
         };
-
+        push_constant_data pushData { .vpm = _main_camera->get_vpm() };
+        vkCmdPushConstants(
+                resource.command_buffer,
+                _vulkan_pipeline->get_layout(),
+                VK_SHADER_STAGE_VERTEX_BIT, 0,
+                sizeof(push_constant_data),
+                &pushData);
         vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
         vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _vulkan_pipeline->get_pipeline());
         vkCmdDraw(resource.command_buffer, 3, 1, 0, 0);

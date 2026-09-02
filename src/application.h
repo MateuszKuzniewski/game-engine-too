@@ -16,6 +16,7 @@
 #include "frame_resources.h"
 #include "command_pool.h"
 #include "command_buffer.h"
+#include "camera.h"
 
 namespace get
 {   
@@ -64,5 +65,6 @@ namespace get
         std::unique_ptr<vulkan_sempahore> _semaphore;
         std::unique_ptr<command_pool> _command_pool;
         std::unique_ptr<command_buffer> _command_buffer;
+        std::unique_ptr<camera> _main_camera;
     };
 }
