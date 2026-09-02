@@ -6,11 +6,19 @@
 get::vulkan_pipeline::vulkan_pipeline(VkDevice device, const shader& shader)
     : _shader_entry_point("main"), _device(device)
 {
+    VkPushConstantRange pushConstantRange
+    {
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .offset = 0,
+        .size = sizeof(push_constant_data)
+    };
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 0,
-        .pushConstantRangeCount = 0
+        .pushConstantRangeCount = 1,
+        .pPushConstantRanges = &pushConstantRange
     };
 
     VkResult res = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &_pipeline_layout);
@@ -18,6 +26,7 @@ get::vulkan_pipeline::vulkan_pipeline(VkDevice device, const shader& shader)
     {
         throw std::runtime_error("SYSTEM: Failed to create vulkan pipeline");
     }
+
     auto vert = shader.compile(shader_type::VERT);
     auto frag = shader.compile(shader_type::FRAG);
 
@@ -155,4 +164,9 @@ get::vulkan_pipeline::~vulkan_pipeline()
 VkPipeline get::vulkan_pipeline::get_pipeline() const
 {
     return _pipeline;
+}
+
+VkPipelineLayout get::vulkan_pipeline::get_layout() const
+{
+    return _pipeline_layout;
 }
