@@ -1,7 +1,8 @@
 #version 450
 
 layout(location = 0) out vec3 fragColor;
-layout(push_constant) uniform pushConstants {
+layout(push_constant) uniform pushConstants 
+{
     mat4 vpm;
 } pc;
 
@@ -18,6 +19,7 @@ const vec3[3] colors = vec3[]
     vec3(0.0, 1.0, 0.0),
     vec3(0.0, 0.0, 1.0)
 );
+
 
 void main()
 {
