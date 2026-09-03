@@ -21,7 +21,6 @@ namespace get
         window(const window_settings& settings);
         ~window();
     
-        // TO DO: Figure out what to do with this later
         window(const window&) = delete;
         window(window&&) = delete;
         window& operator=(const window&) = delete;
