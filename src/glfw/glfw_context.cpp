@@ -3,6 +3,8 @@
 
 get::glfw_context::glfw_context()
 {
+    // renderdoc doesn't like wayland, force to X11 if debugging
+    // glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
     int res = glfwInit();
 
     if (res != GL_TRUE)

@@ -81,6 +81,8 @@ get::application::~application()
 
 void get::application::run()
 {
+    std::println("{0}", "SYSTEM: Application is running");
+
     int currentWidth = 0;
     int currentHeight = 0;
     int lastWidth = 0;
@@ -103,12 +105,11 @@ void get::application::run()
             lastWidth = currentWidth;
             lastHeight = currentHeight;
         }
-
+        
+        _main_camera->update(currentWidth, currentHeight);
         render(currentWidth, currentHeight);
         glfwPollEvents();
     }
-
-    std::println("{0}", "SYSTEM: Application is running");
 }
 
 void get::application::render(int width, int height)
@@ -120,7 +121,6 @@ void get::application::render(int width, int height)
         _swapchain->create(width, height);
         _depth_buffer->destroy();
         _depth_buffer->create(width, height);
-        _main_camera->update(width, height);
 
         recreateSwapchain = false;
     }
@@ -286,13 +286,16 @@ void get::application::render(int width, int height)
                 .height = static_cast<u32>(height),
             }
         };
-        push_constant_data pushData { .vpm = _main_camera->get_vpm() };
+
+        push_constant_data pushData { .vpm = _main_camera->get_view_projection_matrix() };
         vkCmdPushConstants(
                 resource.command_buffer,
                 _vulkan_pipeline->get_layout(),
-                VK_SHADER_STAGE_VERTEX_BIT, 0,
-                sizeof(push_constant_data),
+                VK_SHADER_STAGE_VERTEX_BIT, 
+                0,
+                static_cast<u32>(sizeof(push_constant_data)),
                 &pushData);
+
         vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
         vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _vulkan_pipeline->get_pipeline());
         vkCmdDraw(resource.command_buffer, 3, 1, 0, 0);
