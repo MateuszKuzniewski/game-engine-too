@@ -32,7 +32,6 @@ public:
     application& operator=(application&&) = delete;
 
     void run();
-    void shutdown();
 
 private:
 

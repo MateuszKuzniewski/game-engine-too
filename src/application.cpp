@@ -59,13 +59,13 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
 
     _vulkan_pipeline =  std::make_unique<get::vulkan_pipeline>( _vulkan_device->get_device(), *_shader);
 
-    _semaphore = std::make_unique<get::vulkan_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
+    _semaphore =        std::make_unique<get::vulkan_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
 
-    _command_pool = std::make_unique<get::command_pool>(_vulkan_device->get_device(), _queue_family->get_queue_family_id(), _frame_resources);
+    _command_pool =     std::make_unique<get::command_pool>(_vulkan_device->get_device(), _queue_family->get_queue_family_id(), _frame_resources);
 
-    _command_buffer = std::make_unique<get::command_buffer>(_vulkan_device->get_device(), _frame_resources);
+    _command_buffer =   std::make_unique<get::command_buffer>(_vulkan_device->get_device(), _frame_resources);
 
-    _main_camera = std::make_unique<get::camera>(settings.width, settings.height, cameraSettings);
+    _main_camera =      std::make_unique<get::camera>(settings.width, settings.height, cameraSettings);
 
 }
 
@@ -392,8 +392,3 @@ void application::render(int width, int height)
 
     vkQueuePresentKHR(_vulkan_device->get_queue(), &presentInfo);
 }
-
-void application::shutdown()
-{
-    std::println("{0}", "SYSTEM: Application was closed");
-} 
