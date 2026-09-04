@@ -29,12 +29,18 @@ FetchContent_Declare(
     GIT_TAG v3.4.0
 )
 
+FetchContent_Declare(
+    gltf
+    GIT_REPOSITORY https://github.com/syoyo/tinygltf
+    GIT_TAG v3.0.1
+)
+
 
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(glm glfw vma)
+FetchContent_MakeAvailable(glm glfw vma gltf)
 
 file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/*.h
@@ -49,6 +55,8 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/shader/*.cpp
     ${PROJECT_SOURCE_DIR}/src/core/*.h
     ${PROJECT_SOURCE_DIR}/src/core/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/gltf/*.h
+    ${PROJECT_SOURCE_DIR}/src/gltf/*.cpp
 )
 
 
@@ -66,6 +74,7 @@ target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src/shader
     ${PROJECT_SOURCE_DIR}/src/vulkan
     ${PROJECT_SOURCE_DIR}/src/core
+    ${PROJECT_SOURCE_DIR}/src/gltf
 )
 
 target_compile_options(get PRIVATE
@@ -79,12 +88,21 @@ target_link_options(get PRIVATE
     -fsanitize=address,undefined
 )
 
+if (WIN32)
+    set(SHADERC_LIB_TARGET Vulkan::shaderc_combined)
+else()
+    set(SHADERC_LIB_TARGET ${SHADERC_SHARED_LIB})
+endif()
+
 target_link_libraries(get PRIVATE
     Vulkan::Vulkan
     Vulkan::volk
-    ${SHADERC_SHARED_LIB}
+    ${SHADERC_LIB_TARGET}
     glm::glm
     glfw
     GPUOpen::VulkanMemoryAllocator
-    stdc++
 )
+
+if (NOT WIN32)
+    target_link_libraries(get PRIVATE stdc++)
+endif()
