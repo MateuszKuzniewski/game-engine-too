@@ -10,7 +10,7 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
     std::println("{0}", "SYSTEM: Application was created");
     std::println("{0}{1}", "SYSTEM: Project path is set to: ", get::directories::project_path());
     std::println("{0}{1}", "SYSTEM: Shader path is set to: ", get::directories::shader_path());
-
+    
     get::window_settings settings
     {
         .width = 1280,
