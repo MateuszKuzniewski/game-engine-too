@@ -15,14 +15,14 @@ namespace get
         inline static void update()
         {
             f64 currentFrame = glfwGetTime();
-            _delta_time = currentFrame - _last_frame;
+            _delta_time = static_cast<f32>(currentFrame - _last_frame);
             _last_frame = currentFrame;
         };
 
         [[nodiscard]] inline static f64 delta_time() { return _delta_time; };
 
     private:
-        inline static f64 _delta_time;
+        inline static f32 _delta_time;
         inline static f64 _last_frame;
     };
 }
