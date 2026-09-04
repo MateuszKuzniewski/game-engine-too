@@ -18,53 +18,52 @@
 #include "command_buffer.h"
 #include "camera.h"
 
-namespace get
-{   
-    class application
-    {
-    public:
 
-        application();
-        ~application();
-        
-        application(const application&) = delete;
-        application(application&&) = delete;
-        application& operator=(const application&) = delete;
-        application& operator=(application&&) = delete;
+class application
+{
+public:
+
+    application();
+    ~application();
     
-        void run();
-        void shutdown();
+    application(const application&) = delete;
+    application(application&&) = delete;
+    application& operator=(const application&) = delete;
+    application& operator=(application&&) = delete;
 
-    private:
+    void run();
+    void shutdown();
 
-        void render(int width, int height);
+private:
 
-    private:
+    void render(int width, int height);
 
-        u32 _frame_index;
-        u32 _max_frames_in_flight;
+private:
 
-        u64 _next_signal_value;
-        
-        bool recreateSwapchain = false;
+    u32 _frame_index;
+    u32 _max_frames_in_flight;
 
-        std::vector<frame_resource> _frame_resources;
-        
-        std::unique_ptr<glfw_context> _glfw_context;
-        std::unique_ptr<vulkan_context> _vulkan_context;
-        std::unique_ptr<window> _window;
-        std::unique_ptr<vulkan_surface> _surface;
-        std::unique_ptr<vulkan_physical_device> _physical_device;
-        std::unique_ptr<vulkan_queue_family> _queue_family;
-        std::unique_ptr<vulkan_device> _vulkan_device;
-        std::unique_ptr<vulkan_memory_allocator> _vma;
-        std::unique_ptr<vulkan_swapchain> _swapchain;
-        std::unique_ptr<depth_buffer> _depth_buffer;
-        std::unique_ptr<shader> _shader;
-        std::unique_ptr<vulkan_pipeline> _vulkan_pipeline;
-        std::unique_ptr<vulkan_sempahore> _semaphore;
-        std::unique_ptr<command_pool> _command_pool;
-        std::unique_ptr<command_buffer> _command_buffer;
-        std::unique_ptr<camera> _main_camera;
-    };
-}
+    u64 _next_signal_value;
+    
+    bool recreateSwapchain = false;
+
+    std::vector<get::frame_resource> _frame_resources;
+    
+    std::unique_ptr<get::glfw_context> _glfw_context;
+    std::unique_ptr<get::vulkan_context> _vulkan_context;
+    std::unique_ptr<get::window> _window;
+    std::unique_ptr<get::vulkan_surface> _surface;
+    std::unique_ptr<get::vulkan_physical_device> _physical_device;
+    std::unique_ptr<get::vulkan_queue_family> _queue_family;
+    std::unique_ptr<get::vulkan_device> _vulkan_device;
+    std::unique_ptr<get::vulkan_memory_allocator> _vma;
+    std::unique_ptr<get::vulkan_swapchain> _swapchain;
+    std::unique_ptr<get::depth_buffer> _depth_buffer;
+    std::unique_ptr<get::shader> _shader;
+    std::unique_ptr<get::vulkan_pipeline> _vulkan_pipeline;
+    std::unique_ptr<get::vulkan_sempahore> _semaphore;
+    std::unique_ptr<get::command_pool> _command_pool;
+    std::unique_ptr<get::command_buffer> _command_buffer;
+    std::unique_ptr<get::camera> _main_camera;
+};
+

@@ -3,7 +3,7 @@
 
 int main() 
 {
-    get::application* app = new get::application();
+    application* app = new application();
     app->run();
     app->shutdown();
     

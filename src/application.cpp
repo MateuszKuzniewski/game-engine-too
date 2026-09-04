@@ -3,8 +3,9 @@
 #include "application.h"
 #include "directories.h"
 #include "stb_image.h"
+#include "frame_time.h"
 
-get::application::application() : _frame_index(0), _max_frames_in_flight(2), _next_signal_value(2), _frame_resources(2)
+application::application() : _frame_index(0), _max_frames_in_flight(2), _next_signal_value(2), _frame_resources(2)
 {
     std::println("{0}", "SYSTEM: Application was created");
     std::println("{0}{1}", "SYSTEM: Project path is set to: ", get::directories::project_path());
@@ -24,26 +25,26 @@ get::application::application() : _frame_index(0), _max_frames_in_flight(2), _ne
         .far_clip = 10000.f,
     };
     
-    _glfw_context =     std::make_unique<glfw_context>();
-    _vulkan_context =   std::make_unique<vulkan_context>(*_glfw_context, settings.title);
-    _window =           std::make_unique<window>(settings);
-    _surface =          std::make_unique<vulkan_surface>(*_window, _vulkan_context->get_instance());
-    _physical_device =  std::make_unique<vulkan_physical_device>(_vulkan_context->get_instance());
-    _queue_family =     std::make_unique<vulkan_queue_family>(_physical_device->get_device(), _surface->get_surface());
-    _vulkan_device =    std::make_unique<vulkan_device>(_physical_device->get_device(), _queue_family->get_queue_family_id());
-    _vma =              std::make_unique<vulkan_memory_allocator>(
+    _glfw_context =     std::make_unique<get::glfw_context>();
+    _vulkan_context =   std::make_unique<get::vulkan_context>(*_glfw_context, settings.title);
+    _window =           std::make_unique<get::window>(settings);
+    _surface =          std::make_unique<get::vulkan_surface>(*_window, _vulkan_context->get_instance());
+    _physical_device =  std::make_unique<get::vulkan_physical_device>(_vulkan_context->get_instance());
+    _queue_family =     std::make_unique<get::vulkan_queue_family>(_physical_device->get_device(), _surface->get_surface());
+    _vulkan_device =    std::make_unique<get::vulkan_device>(_physical_device->get_device(), _queue_family->get_queue_family_id());
+    _vma =              std::make_unique<get::vulkan_memory_allocator>(
                             _vulkan_context->get_instance(), 
                             _physical_device->get_device(), 
                             _vulkan_device->get_device());
 
-    _swapchain =        std::make_unique<vulkan_swapchain>(
+    _swapchain =        std::make_unique<get::vulkan_swapchain>(
                             _vulkan_device->get_device(), 
                             _physical_device->get_device(),
                             _surface->get_surface());
 
     _swapchain->create(settings.width, settings.height);
 
-    _depth_buffer =     std::make_unique<depth_buffer>(
+    _depth_buffer =     std::make_unique<get::depth_buffer>(
                             _vulkan_device->get_device(), 
                             _vma->get_allocator(), 
                             settings.width, 
@@ -51,24 +52,24 @@ get::application::application() : _frame_index(0), _max_frames_in_flight(2), _ne
 
     _depth_buffer->create(settings.width, settings.height);
 
-    _shader =           std::make_unique<shader>(
+    _shader =           std::make_unique<get::shader>(
                             _vulkan_device->get_device(),
                             "shader.vert",
                             "shader.frag");
 
-    _vulkan_pipeline =  std::make_unique<vulkan_pipeline>( _vulkan_device->get_device(), *_shader);
+    _vulkan_pipeline =  std::make_unique<get::vulkan_pipeline>( _vulkan_device->get_device(), *_shader);
 
-    _semaphore = std::make_unique<vulkan_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
+    _semaphore = std::make_unique<get::vulkan_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
 
-    _command_pool = std::make_unique<command_pool>(_vulkan_device->get_device(), _queue_family->get_queue_family_id(), _frame_resources);
+    _command_pool = std::make_unique<get::command_pool>(_vulkan_device->get_device(), _queue_family->get_queue_family_id(), _frame_resources);
 
-    _command_buffer = std::make_unique<command_buffer>(_vulkan_device->get_device(), _frame_resources);
+    _command_buffer = std::make_unique<get::command_buffer>(_vulkan_device->get_device(), _frame_resources);
 
-    _main_camera = std::make_unique<camera>(settings.width, settings.height, cameraSettings);
+    _main_camera = std::make_unique<get::camera>(settings.width, settings.height, cameraSettings);
 
 }
 
-get::application::~application()
+application::~application()
 {
     vkDeviceWaitIdle(_vulkan_device->get_device());
 
@@ -80,7 +81,7 @@ get::application::~application()
     std::println("{0}", "SYSTEM: Application was destroyed");
 }
 
-void get::application::run()
+void application::run()
 {
     std::println("{0}", "SYSTEM: Application is running");
 
@@ -92,6 +93,7 @@ void get::application::run()
 
     while (!glfwWindowShouldClose(window))
     {
+        get::frame_time::update();
         glfwGetFramebufferSize(window, &currentWidth, &currentHeight);
 
         while (currentWidth == 0 || currentHeight == 0)
@@ -113,7 +115,7 @@ void get::application::run()
     }
 }
 
-void get::application::render(int width, int height)
+void application::render(int width, int height)
 {
     if (recreateSwapchain)
     {
@@ -288,13 +290,13 @@ void get::application::render(int width, int height)
             }
         };
 
-        push_constant_data pushData { .vpm = _main_camera->get_view_projection_matrix() };
+        get::push_constant_data pushData { .vpm = _main_camera->get_view_projection_matrix() };
         vkCmdPushConstants(
                 resource.command_buffer,
                 _vulkan_pipeline->get_layout(),
                 VK_SHADER_STAGE_VERTEX_BIT, 
                 0,
-                static_cast<u32>(sizeof(push_constant_data)),
+                static_cast<u32>(sizeof(get::push_constant_data)),
                 &pushData);
 
         vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
@@ -391,7 +393,7 @@ void get::application::render(int width, int height)
     vkQueuePresentKHR(_vulkan_device->get_queue(), &presentInfo);
 }
 
-void get::application::shutdown()
+void application::shutdown()
 {
     std::println("{0}", "SYSTEM: Application was closed");
 } 
