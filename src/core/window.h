@@ -29,7 +29,7 @@ namespace get
         [[nodiscard]] GLFWwindow* get_current_window() const;
     
     private:
-        GLFWwindow* _glfwWindow; 
+        GLFWwindow* _glfw_window; 
         i32 _width;
         i32 _height;
     };

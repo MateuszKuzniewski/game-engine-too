@@ -5,9 +5,9 @@
 get::window::window(const window_settings& settings) : _width(settings.width), _height(settings.height)
 {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    _glfwWindow = glfwCreateWindow(settings.width, settings.height, settings.title.c_str(), nullptr, nullptr);
+    _glfw_window = glfwCreateWindow(settings.width, settings.height, settings.title.c_str(), nullptr, nullptr);
     
-    if (_glfwWindow == nullptr)
+    if (_glfw_window == nullptr)
     {
         throw std::runtime_error("SYSTEM: Failed to create GLFW window");
     }
@@ -18,12 +18,12 @@ get::window::window(const window_settings& settings) : _width(settings.width), _
 get::window::~window()
 {
     std::println("{0}", "WINDOW: Window destroyed");
-    glfwDestroyWindow(_glfwWindow);
+    glfwDestroyWindow(_glfw_window);
 }
 
 GLFWwindow* get::window::get_current_window() const
 {
-    return _glfwWindow;
+    return _glfw_window;
 }
 
 

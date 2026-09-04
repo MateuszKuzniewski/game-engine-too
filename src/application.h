@@ -45,7 +45,7 @@ private:
 
     u64 _next_signal_value;
     
-    bool recreateSwapchain = false;
+    bool _recreate_swapchain = false;
 
     std::vector<get::frame_resource> _frame_resources;
     

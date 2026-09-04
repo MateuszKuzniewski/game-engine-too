@@ -104,7 +104,7 @@ void application::run()
         
         if (currentWidth != lastWidth || currentHeight != lastHeight)
         {
-            recreateSwapchain = true;
+            _recreate_swapchain = true;
             lastWidth = currentWidth;
             lastHeight = currentHeight;
         }
@@ -117,7 +117,7 @@ void application::run()
 
 void application::render(int width, int height)
 {
-    if (recreateSwapchain)
+    if (_recreate_swapchain)
     {
         vkDeviceWaitIdle(_vulkan_device->get_device());
         _swapchain->destroy();
@@ -125,7 +125,7 @@ void application::render(int width, int height)
         _depth_buffer->destroy();
         _depth_buffer->create(width, height);
 
-        recreateSwapchain = false;
+        _recreate_swapchain = false;
     }
 
     const u32 frameResIndex = _frame_index++ % _max_frames_in_flight;
@@ -158,12 +158,12 @@ void application::render(int width, int height)
 
     if (res == VK_ERROR_OUT_OF_DATE_KHR)
     {
-        recreateSwapchain = true;
+        _recreate_swapchain = true;
         return;
     }
     else if (res == VK_SUBOPTIMAL_KHR)
     {
-        recreateSwapchain = true;
+        _recreate_swapchain = true;
     }
 
     // begin recording commands
