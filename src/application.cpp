@@ -2,6 +2,7 @@
 #include <print>
 #include "application.h"
 #include "directories.h"
+#include "stb_image.h"
 
 get::application::application() : _frame_index(0), _max_frames_in_flight(2), _next_signal_value(2), _frame_resources(2)
 {
@@ -20,7 +21,7 @@ get::application::application() : _frame_index(0), _max_frames_in_flight(2), _ne
     {
         .fov = 60.f,
         .near_clip = 0.1f,
-        .far_clip = 10000.f
+        .far_clip = 10000.f,
     };
     
     _glfw_context =     std::make_unique<glfw_context>();
