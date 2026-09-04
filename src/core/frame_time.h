@@ -12,17 +12,17 @@ namespace get
         frame_time() = delete;
         ~frame_time() = default;
 
-        [[nodiscard]] inline static f64 delta_time()
+        inline static void update()
         {
             f64 currentFrame = glfwGetTime();
-            f64 deltaTime = currentFrame - _last_frame;
+            _delta_time = currentFrame - _last_frame;
             _last_frame = currentFrame;
-
-            return deltaTime;
         };
 
-    private:
+        [[nodiscard]] inline static f64 delta_time() { return _delta_time; };
 
+    private:
+        inline static f64 _delta_time;
         inline static f64 _last_frame;
     };
 }
