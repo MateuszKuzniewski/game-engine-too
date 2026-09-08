@@ -17,7 +17,7 @@
 #include "command_pool.h"
 #include "command_buffer.h"
 #include "camera.h"
-
+#include "render_data.h"
 
 class application
 {
@@ -30,10 +30,20 @@ public:
     application(application&&) = delete;
     application& operator=(const application&) = delete;
     application& operator=(application&&) = delete;
-
+    
+    void load_data();
     void run();
 
 private:
+    
+    // TO DO: move this out of here
+    VkCommandBuffer start_transient_command_buffer();
+    void submit_transient_command_buffer(VkCommandBuffer commandBuffer);
+    std::pair<u32, get::gpu_buffer> create_image(VkCommandBuffer commandBuffer, unsigned char* imageData, u32 width, u32 height, i32 channels);
+    get::gpu_buffer create_buffer(VkBufferUsageFlags usage, size_t byteSize, bool mappable, VmaMemoryUsage memoryUsage);
+    void map_copy_buffer_data(const get::gpu_buffer& buffer, size_t bufferOffset, void* data, size_t byteSize);
+    void load_gltf(const std::string& filepath);
+    ////////////////
 
     void render(int width, int height);
 
@@ -41,13 +51,20 @@ private:
 
     u32 _frame_index;
     u32 _max_frames_in_flight;
-
+    u32 _fallback_image_id;
     u64 _next_signal_value;
     
     bool _recreate_swapchain = false;
 
     std::vector<get::frame_resource> _frame_resources;
     
+    std::vector<get::vertex> _vertices;
+    std::vector<u32> _indices;
+
+    std::vector<get::gpu_image> _gpu_images;
+    std::vector<VkSampler> _samplers;
+    std::vector<get::texture> _textures;
+
     std::unique_ptr<get::glfw_context> _glfw_context;
     std::unique_ptr<get::vulkan_context> _vulkan_context;
     std::unique_ptr<get::window> _window;
