@@ -57,6 +57,8 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/core/*.cpp
     ${PROJECT_SOURCE_DIR}/src/gltf/*.h
     ${PROJECT_SOURCE_DIR}/src/gltf/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/*.h
+    ${PROJECT_SOURCE_DIR}/src/rendering/*.cpp
 )
 
 
@@ -75,6 +77,7 @@ target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src/vulkan
     ${PROJECT_SOURCE_DIR}/src/core
     ${PROJECT_SOURCE_DIR}/src/gltf
+    ${PROJECT_SOURCE_DIR}/src/rendering
 )
 
 target_compile_options(get PRIVATE
