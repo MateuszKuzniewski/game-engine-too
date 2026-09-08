@@ -2,10 +2,11 @@
 #include <volk.h>
 #include <shaderc/shaderc.hpp>
 #include <string>
+#include "types.h"
 
 namespace get 
 {
-    enum class shader_type
+    enum class shader_type : i8
     {
         VERT = 0,
         FRAG
