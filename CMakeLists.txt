@@ -45,6 +45,8 @@ FetchContent_MakeAvailable(glm glfw vma gltf)
 file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/*.h
     ${PROJECT_SOURCE_DIR}/src/*.cpp
+    ${PROJECT_SOURCE_DIR}/ext/*.h
+    ${PROJECT_SOURCE_DIR}/ext/*.cpp
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.h
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.cpp
     ${PROJECT_SOURCE_DIR}/src/glfw/*.h
@@ -71,6 +73,7 @@ add_executable(get ${sources})
 
 target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/ext
     ${PROJECT_SOURCE_DIR}/src/buffer
     ${PROJECT_SOURCE_DIR}/src/glfw
     ${PROJECT_SOURCE_DIR}/src/shader
