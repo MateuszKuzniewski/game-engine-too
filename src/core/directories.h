@@ -10,13 +10,19 @@ namespace get
 
        [[nodiscard]] static std::string project_path()
        {
-           return std::filesystem::current_path().string();;
+           return std::filesystem::current_path().string();
        }
 
        [[nodiscard]] static std::string shader_path()
        {
            auto projectPath = project_path();
            return projectPath + "/shaders";
+       }
+
+       [[nodiscard]] static std::string asset_path()
+       {
+           auto projectPath = project_path();
+           return projectPath + "/assets"; 
        }
     };
 }
