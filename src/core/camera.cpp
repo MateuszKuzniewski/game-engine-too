@@ -16,13 +16,14 @@ get::camera::camera(u32 width, u32 height, const camera_settings settings)
 
 void get::camera::update(u32 width, u32 height)
 {
-    f32 ratio = (f32)width / (f32)height;
+    f32 ratio = static_cast<f32>(width) / static_cast<f32>(height);
     calculate_perspective(ratio);
     calculate_view();
 }
 
 void get::camera::calculate_perspective(f64 ratio)
 {
+    // TO DO: Check perspectiveRH
     _projection_matrix = glm::perspective(glm::radians(_settings.fov), ratio, _settings.near_clip, _settings.far_clip);
 }
 
@@ -41,4 +42,10 @@ glm::mat4 get::camera::get_view_projection_matrix()
 {
     _view_projection_matrix = _projection_matrix * _view_matrix;
     return _view_projection_matrix;
+}
+
+
+glm::vec3 get::camera::get_positon() const
+{
+    return _position;
 }

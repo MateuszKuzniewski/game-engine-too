@@ -21,6 +21,7 @@ namespace get
 
         glm::mat4 get_view_projection_matrix();
         void update(u32 width, u32 height);
+        [[nodiscard]] glm::vec3 get_positon() const; 
 
     private:
 
@@ -29,6 +30,7 @@ namespace get
 
     private:
         
+        glm::vec3 _position = glm::vec3(0);
         camera_settings _settings;
         f64 _roll;       
         glm::mat4 _view_matrix;
