@@ -1,11 +1,12 @@
-#include <memory>
-#include <cstring>
 #include <print>
+#include <unordered_map>
+#include <assert.h>
 #include "application.h"
 #include "directories.h"
-#include "stb_image.h"
 #include "frame_time.h"
 #include "stb_image.h"
+#include "glm/gtc/type_ptr.hpp"
+
 
 application::application() : _frame_index(0), _max_frames_in_flight(2), _next_signal_value(2), _frame_resources(2)
 {
@@ -59,7 +60,9 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
                             "shader.vert",
                             "shader.frag");
 
-    _vulkan_pipeline =  std::make_unique<get::vulkan_pipeline>( _vulkan_device->get_device(), *_shader);
+    _descriptor_set =   std::make_unique<get::vk_descriptor_set>(_vulkan_device->get_device(), MAX_TEXTURES);
+
+    _vulkan_pipeline =  std::make_unique<get::vulkan_pipeline>( _vulkan_device->get_device(), *_shader, _descriptor_set->get_descriptor_set_layout());
 
     _semaphore =        std::make_unique<get::vulkan_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
 
@@ -68,17 +71,31 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
     _command_buffer =   std::make_unique<get::command_buffer>(_vulkan_device->get_device(), _frame_resources);
 
     _main_camera =      std::make_unique<get::camera>(settings.width, settings.height, cameraSettings);
-
+    
+    _node_world =       std::make_unique<get::node_world>(1024);
+    
+    create_indirect_buffers();
 }
 
 application::~application()
 {
     vkDeviceWaitIdle(_vulkan_device->get_device());
-
+    
     for (auto& res : _frame_resources)
     {
-        vkDestroySemaphore(_vulkan_device->get_device(), res.image_acquired_semaphore, nullptr);
-        vkDestroyCommandPool(_vulkan_device->get_device(), res.command_pool, nullptr);
+        auto device = _vulkan_device->get_device();
+        auto allocator = _vma->get_allocator();
+
+        vkDestroySemaphore(device, res.image_acquired_semaphore, nullptr);
+        vkDestroyCommandPool(device, res.command_pool, nullptr);
+
+        vmaUnmapMemory(allocator, res.indirect_draw_buffer.allocation);
+        vkDestroyBuffer(device, res.indirect_draw_buffer.buffer, nullptr);
+        vmaFreeMemory(allocator, res.indirect_draw_buffer.allocation);
+
+        vmaUnmapMemory(allocator, res.render_item_buffer.allocation);
+        vkDestroyBuffer(device, res.render_item_buffer.buffer, nullptr);
+        vmaFreeMemory(allocator, res.render_item_buffer.allocation);
     }
 
     for (auto& img : _gpu_images)
@@ -97,10 +114,13 @@ application::~application()
 
 void application::load_data()
 {
-    constexpr size_t vertexBufferBytes = static_cast<size_t>(64 * 1024 * 1024); // vertex buffer size
-    constexpr size_t indexBufferBytes = static_cast<size_t>(32 * 1024 * 1024); // index buffer size
+    constexpr size_t vertSizeMB = 128;
+    constexpr size_t indicesSizeMB = 64;
+    constexpr size_t vertexBufferBytes = static_cast<size_t>(vertSizeMB * 1024 * 1024); // vertex buffer size
+    constexpr size_t indexBufferBytes = static_cast<size_t>(indicesSizeMB * 1024 * 1024); // index buffer size
     constexpr size_t totalVerts = vertexBufferBytes / sizeof(get::vertex);
     constexpr size_t totalIndices = indexBufferBytes / sizeof(u32);
+
     _vertices.resize(totalVerts);
     _indices.resize(totalIndices);
 
@@ -120,7 +140,7 @@ void application::load_data()
 
     submit_transient_command_buffer(imageBuffer);
 
-    vmaDestroyBuffer(_vma->get_allocator(), whiteStagingBuffer.buffer, whiteStagingBuffer.allocation);
+    _vma->destroy(whiteStagingBuffer.buffer, whiteStagingBuffer.allocation);
 
     VkSamplerCreateInfo samplerInfo
     {
@@ -146,6 +166,542 @@ void application::load_data()
     u32 fallbackSamplerID = _samplers.size();
     _textures.push_back(get::texture { .image_id = whiteImageId, .sampler_id = fallbackSamplerID });
 
+    // load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
+    load_gltf(get::directories::asset_path() + "/models/mario/scene.gltf");
+    
+    get::node& root = _node_world->get_node(_root_node_id);
+    root.set_scale(glm::vec3(0.01, 0.01, 0.01));
+    root.set_translation(glm::vec3(0, -5, 0));
+
+    get::gpu_buffer vertexBufferStage = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, vertexBufferBytes, true, VMA_MEMORY_USAGE_AUTO);
+    if (!vertexBufferStage.buffer)
+    {
+        throw std::runtime_error("SYSTEM: Failed to create vertex staging buffer");
+    }
+
+    get::gpu_buffer indexBufferStage = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, indexBufferBytes, true, VMA_MEMORY_USAGE_AUTO);
+    if (!indexBufferStage.buffer)
+    {
+        throw std::runtime_error("SYSTEM: Failed to create index staging buffer");
+    }
+    
+    // device local buffers
+    get::gpu_buffer vertexBuffer = create_buffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, vertexBufferBytes, false, VMA_MEMORY_USAGE_AUTO);
+    if (!vertexBuffer.buffer)
+    {
+        throw std::runtime_error("SYSTEM: Failed to create vertex buffer");
+    }
+
+    _vertex_buffer_id = add_buffer(vertexBuffer);
+    _vma->copy_buffer_data(vertexBufferStage, 0, _vertices.data(), _vertices.size() * sizeof(get::vertex));
+
+    get::gpu_buffer indexBuffer = create_buffer(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, indexBufferBytes, false, VMA_MEMORY_USAGE_AUTO);
+
+    if (!indexBuffer.buffer)
+    {
+        throw std::runtime_error("SYSTEM: Failed to create index buffer");
+    }
+
+    _index_buffer_id = add_buffer(indexBuffer);
+    _vma->copy_buffer_data(indexBufferStage, 0, _indices.data(), _vertices.size() * sizeof(u32));
+
+    VkCommandBuffer geoCmdBuffer = start_transient_command_buffer();
+    VkBufferCopy buffCopyVerts 
+    {
+        .srcOffset = 0,
+        .dstOffset = 0,
+        .size = vertexBufferBytes
+    };
+
+    vkCmdCopyBuffer(geoCmdBuffer, vertexBufferStage.buffer, vertexBuffer.buffer, 1, &buffCopyVerts);
+    VkBufferCopy buffCopyIndices 
+    {
+        .srcOffset = 0,
+        .dstOffset = 0,
+        .size = indexBufferBytes
+    };
+
+    vkCmdCopyBuffer(geoCmdBuffer, indexBufferStage.buffer, indexBuffer.buffer, 1, &buffCopyIndices);
+    submit_transient_command_buffer(geoCmdBuffer);
+
+    _vma->destroy(vertexBufferStage.buffer, vertexBufferStage.allocation);
+    _vma->destroy(indexBufferStage.buffer, indexBufferStage.allocation);
+    
+    _descriptor_set->update_texture_descriptors(_textures, _samplers, _gpu_images);
+
+    const size_t materialDataBytes = _materials.size() * sizeof(get::material);
+
+    get::gpu_buffer materialBuffer = create_buffer(
+            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+            materialDataBytes,
+            true,
+            VMA_MEMORY_USAGE_AUTO);
+
+    if (!materialBuffer.buffer)
+    {
+        throw std::runtime_error("SYSTEM: Failed to create material buffer");
+    }
+
+    _material_buffer_id = add_buffer(materialBuffer);
+    _vma->copy_buffer_data(materialBuffer, 0, _materials.data(), materialDataBytes);
+}
+
+
+void application::create_indirect_buffers()
+{
+    for (auto& res : _frame_resources)
+    {
+        const size_t indirectBufferByteSize = _node_world->max_nodes() * sizeof(VkDrawIndexedIndirectCommand);
+        res.indirect_draw_buffer = create_buffer(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, indirectBufferByteSize, true, VMA_MEMORY_USAGE_AUTO);
+
+        void* indirectBufferPtr = nullptr;
+        if (vmaMapMemory(_vma->get_allocator(), res.indirect_draw_buffer.allocation, &indirectBufferPtr) != VK_SUCCESS)
+        {
+            throw std::runtime_error("SYSTEM: Failed to map indirect draw buffer");
+        }
+
+        res.indirect_draw_ptr = reinterpret_cast<VkDrawIndexedIndirectCommand*>(indirectBufferPtr);
+
+        const size_t renderItemByteSize = _node_world->max_nodes() * sizeof(get::render_item);
+        res.render_item_buffer = create_buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, renderItemByteSize, true, VMA_MEMORY_USAGE_AUTO);
+        
+        void* renderItemBufferPtr = nullptr;
+        if (vmaMapMemory(_vma->get_allocator(), res.render_item_buffer.allocation, &renderItemBufferPtr) != VK_SUCCESS)
+        {
+            throw std::runtime_error("SYSTEM: Failed to map render item buffer");
+        }
+
+        res.render_item_ptr = reinterpret_cast<get::render_item*>(renderItemBufferPtr);
+    }
+}
+
+u32 application::add_buffer(const get::gpu_buffer& buffer)
+{
+    _buffers.push_back(buffer);
+    u32 bufferID = _buffers.size();
+    return bufferID;
+}
+
+void application::load_gltf(const std::string& filepath)
+{
+    if (!std::filesystem::exists(filepath))
+    {
+        std::print("SYSTEM: File doesn't exist: {0}\n", filepath);
+        return;
+    }
+
+    std::print("SYSTEM: Loading GLTF: {}\n", filepath);
+
+    tg3_model model;
+    tg3_parse_options options;
+    tg3_error_stack errors;
+
+    tg3_parse_options_init(&options);
+    tg3_error_stack_init(&errors);
+    tg3_error_code parseResult = tg3_parse_file(&model, &errors, filepath.c_str(), filepath.size(), &options);
+
+    if (parseResult != TG3_OK)
+    {
+        std::println("SYSTEM: ERROR parsing GLTF file, errors found:");
+        for (u32 i = 0; i < errors.count; i++)
+        {
+            std::println("{0}", errors.entries[i].message);
+        }
+
+        tg3_error_stack_free(&errors);
+        return;
+    }
+
+    tg3_error_stack_free(&errors);
+    
+    std::filesystem::path imageDir = std::filesystem::path(filepath).parent_path();
+    std::vector<get::image> images = load_images(model, imageDir); // load images into RAM
+    std::vector<u32> imageIDs = upload_images(images); // load images into VRAM
+
+    // free images after uploading into VRAM
+    for (const get::image& image : images)
+    {
+        stbi_image_free(image.data);
+    }
+
+    std::vector<u32> samplerIDs = load_samplers(model);
+    std::vector<u32> textureIDs = load_textures(model, imageIDs, samplerIDs);
+    std::vector<u32> materialIDs = load_materials(model, textureIDs);
+    std::vector<u32> meshIDs = load_meshes(model, materialIDs);
+
+    const tg3_scene* scene = &model.scenes[model.default_scene != -1 ? model.default_scene : 0];
+
+    for (size_t i = 0; i < scene->nodes_count; i++)
+    {
+        u32 nodeID = import_node(*_node_world, model, scene->nodes[i], 0, _last_root_node_id, meshIDs);
+
+        if (!_root_node_id)
+        {
+            _root_node_id = nodeID;
+            _last_root_node_id = nodeID;
+        }
+        else 
+        {
+            _last_root_node_id = nodeID;
+        }
+    }
+
+    tg3_model_free(&model);
+    std::println("SYSTEM: GLTF model loaded successfully");
+}
+
+
+void application::update_texture_descriptors() const
+{
+    std::vector<VkDescriptorImageInfo> imageDescriptors;
+    imageDescriptors.reserve(_textures.size());
+
+    for (const auto& texture : _textures)
+    {
+        imageDescriptors.push_back(
+                {
+                    .sampler = _samplers[texture.sampler_id - 1],
+                    .imageView = _gpu_images[texture.image_id - 1].image_view,
+                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                });
+    }
+
+    VkWriteDescriptorSet descSetWrite
+    {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = _descriptor_set->get_global_descriptor_set(),
+        .dstBinding = 0,
+        .dstArrayElement = 0,
+        .descriptorCount = static_cast<u32>(imageDescriptors.size()),
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .pImageInfo = imageDescriptors.data()
+    };
+
+    vkUpdateDescriptorSets(_vulkan_device->get_device(), 1, &descSetWrite, 0, nullptr);
+}
+
+std::vector<u32> application::load_samplers(const tg3_model& model)
+{
+    i32 noFilter = -1;
+    std::vector<u32> samplerIDs(model.samplers_count);
+
+    for (u32 i = 0; i < samplerIDs.size(); i++)
+    {
+        const tg3_sampler& sampler = model.samplers[i];
+        static const std::unordered_map<i32, std::tuple<VkFilter, VkSamplerMipmapMode, float>> filterMap
+        {
+            { TG3_TEXTURE_FILTER_NEAREST, { VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST, 0.25f }},
+            { TG3_TEXTURE_FILTER_LINEAR, { VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_NEAREST, 0.25f }},
+            { TG3_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR, { VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_LOD_CLAMP_NONE }},
+            { TG3_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST, { VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_LOD_CLAMP_NONE }},
+            { TG3_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR, { VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_LOD_CLAMP_NONE }},
+            { TG3_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST, { VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_LOD_CLAMP_NONE }},
+        };
+
+        static const std::unordered_map<u32, VkSamplerAddressMode> wrapMap
+        {
+            { TG3_TEXTURE_WRAP_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT },
+            { TG3_TEXTURE_WRAP_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE },
+            { TG3_TEXTURE_WRAP_MIRRORED_REPEAT, VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT }
+        };
+
+
+        VkSamplerCreateInfo samplerInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .magFilter = (sampler.mag_filter == noFilter) ? VK_FILTER_LINEAR : std::get<0>(filterMap.at(sampler.mag_filter)),
+            .minFilter = (sampler.min_filter == noFilter) ? VK_FILTER_LINEAR : std::get<0>(filterMap.at(sampler.min_filter)),
+            .mipmapMode = (sampler.min_filter == noFilter) ? VK_SAMPLER_MIPMAP_MODE_LINEAR : std::get<1>(filterMap.at(sampler.min_filter)),
+            .addressModeU = (sampler.wrap_s == noFilter) ? VK_SAMPLER_ADDRESS_MODE_REPEAT : wrapMap.at(sampler.wrap_s),
+            .addressModeV = (sampler.wrap_t == noFilter) ? VK_SAMPLER_ADDRESS_MODE_REPEAT : wrapMap.at(sampler.wrap_t),
+            .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .compareEnable = VK_FALSE,
+            .minLod = 0.0f,
+            .maxLod = (sampler.min_filter == noFilter) ? VK_LOD_CLAMP_NONE : std::get<2>(filterMap.at(sampler.min_filter))
+        };
+
+        VkSampler vulkanSampler = nullptr;
+        if (vkCreateSampler(_vulkan_device->get_device(), &samplerInfo, nullptr, &vulkanSampler) != VK_SUCCESS)
+        {
+            std::println("Unable to create texture sampler");
+            samplerIDs[i] = _textures[0].sampler_id;
+        }
+        else 
+        {
+            _samplers.push_back(vulkanSampler);
+            samplerIDs[i] = _samplers.size();
+        }
+    }
+    
+    return samplerIDs;
+}
+
+
+std::vector<u32> application::load_textures(const tg3_model& model, const std::vector<u32>& images, const std::vector<u32>& samplers)
+{
+    assert(_textures.size() + model.textures_count <= MAX_TEXTURES && "Exceeding max texture count");
+    std::vector<u32> textureIDs(model.textures_count);
+    for (size_t i = 0; i < model.textures_count; i++)
+    {
+        const tg3_texture& tex = model.textures[i];
+        _textures.push_back(get::texture { .image_id = images[tex.source], .sampler_id = samplers[tex.sampler]});
+        textureIDs[i] = _textures.size();
+    }
+
+    return textureIDs;
+}
+
+std::vector<u32> application::load_materials(const tg3_model& model, const std::vector<u32>& textures)
+{
+    i32 noTexture = -1;
+    std::vector<u32> materialIDs(model.materials_count);
+
+    for (size_t i = 0; i < model.materials_count; i++)
+    {
+        const tg3_material* mat = &model.materials[i];
+        _materials.push_back(get::material 
+            {
+                .base_color = glm::vec4(
+                        mat->pbr_metallic_roughness.base_color_factor[0],
+                        mat->pbr_metallic_roughness.base_color_factor[1],
+                        mat->pbr_metallic_roughness.base_color_factor[2],
+                        mat->pbr_metallic_roughness.base_color_factor[3]),
+                .texture_id = mat->pbr_metallic_roughness.base_color_texture.index != noTexture
+                    ? textures[mat->pbr_metallic_roughness.base_color_texture.index] - 1 
+                    : 0
+            });
+
+        materialIDs[i] = _materials.size();
+    }
+    return materialIDs;
+}
+
+
+std::vector<u32> application::load_meshes(const tg3_model& model, const std::vector<u32>& materials)
+{
+    std::vector<u32> meshIDs(model.meshes_count);
+    for (size_t i = 0; i < model.meshes_count; i++)
+    {
+        get::mesh mesh{};
+        const tg3_mesh* tg3Mesh = &model.meshes[i];
+
+        mesh.name = tg3Mesh->name.data != nullptr ? tg3Mesh->name.data : "No name";
+
+        auto write_attribute = [this, &model]<typename T>(T get::vertex::* member, const tg3_str_int_pair* attr)
+        {
+            const tg3_accessor* accessor = &model.accessors[attr->value];
+            const tg3_buffer_view* bufferView = &model.buffer_views[accessor->buffer_view];
+            const tg3_buffer* buffer = &model.buffers[bufferView->buffer];
+            const size_t bufferOffset = bufferView->byte_offset + accessor->byte_offset;
+            const size_t stride = bufferView->byte_stride != 0 ? bufferView->byte_stride : sizeof(T);
+
+            for (u64 id = 0; id < accessor->count; id++)
+            {
+                const size_t elementOffset = bufferOffset + id * stride;
+                const float* data = reinterpret_cast<const float*>(buffer->data.data + elementOffset);
+
+                if constexpr (std::is_same<T, glm::vec3>())
+                {
+                    _vertices[_vert_offset + id].*member = glm::vec3(data[0], data[1], data[2]);
+                }
+                else if constexpr (std::is_same<T, glm::vec2>()) 
+                {
+                    _vertices[_vert_offset + id].*member = glm::vec2(data[0], data[1]);
+                }
+            }
+        };
+
+
+        mesh.sub_meshes.resize(tg3Mesh->primitives_count);
+        for (size_t s = 0; s < tg3Mesh->primitives_count; s++)
+        {
+            const tg3_primitive* primitive = &tg3Mesh->primitives[s];
+            mesh.sub_meshes[s].material_id = materials[primitive->material];
+            mesh.sub_meshes[s].vertex_start = _vert_offset;
+
+            for (size_t a = 0; a < primitive->attributes_count; a++)
+            {
+                const tg3_str_int_pair* attr = &primitive->attributes[a];
+                if (strcmp(attr->key.data, "POSITION") == 0)
+                {
+                    const tg3_accessor* accessor = &model.accessors[attr->value];
+                    assert(accessor->type == TG3_TYPE_VEC3 && accessor->component_type == TG3_COMPONENT_TYPE_FLOAT);
+                    assert(_vert_offset + accessor->count <= _vertices.size() && "SYSTEM: Not enough space to load verticies");
+
+                    mesh.sub_meshes[s].vertex_count = accessor->count;
+                    write_attribute(&get::vertex::position, attr);
+                }
+                else if (strcmp(attr->key.data, "NORMAL") == 0)
+                {
+                    const tg3_accessor* accessor = &model.accessors[attr->value];
+                    assert(accessor->type == TG3_TYPE_VEC3 && accessor->component_type == TG3_COMPONENT_TYPE_FLOAT);
+                    write_attribute(&get::vertex::normal, attr);
+                }
+                else if (strcmp(attr->key.data, "COLOR_0") == 0)
+                {
+                    const tg3_accessor* accessor = &model.accessors[attr->value];
+                    assert(accessor->type == TG3_TYPE_VEC3 || accessor->type == TG3_TYPE_VEC4);
+                    assert(accessor->component_type == TG3_COMPONENT_TYPE_FLOAT);
+                    write_attribute(&get::vertex::color, attr);
+                }
+                else if (strcmp(attr->key.data, "TEXCOORD_0") == 0)
+                {
+                    const tg3_accessor* accessor = &model.accessors[attr->value];
+                    assert(accessor->type == TG3_TYPE_VEC2 && accessor->component_type == TG3_COMPONENT_TYPE_FLOAT);
+                    write_attribute(&get::vertex::uv, attr);
+                }
+            } 
+
+            _vert_offset += mesh.sub_meshes[s].vertex_count;
+
+            if (primitive->indices != -1)
+            {
+                const tg3_accessor* accessor = &model.accessors[primitive->indices];
+                const tg3_buffer_view* bufferView = &model.buffer_views[accessor->buffer_view];
+                const tg3_buffer* buffer = &model.buffers[bufferView->buffer];
+                assert(_id_offset + accessor->count <= _indices.size() && "Not enough space for indices");
+
+                mesh.sub_meshes[s].index_start = _id_offset;
+                mesh.sub_meshes[s].index_count = accessor->count;
+
+                if (accessor->component_type == TG3_COMPONENT_TYPE_UNSIGNED_INT)
+                {
+                    const u32* bufferData = reinterpret_cast<const u32*>(buffer->data.data + bufferView->byte_offset + accessor->byte_offset);
+                    memcpy(&_indices[_id_offset], bufferData, accessor->count * sizeof(u32));
+                }
+                else if (accessor->component_type == TG3_COMPONENT_TYPE_UNSIGNED_SHORT)
+                {
+                    const u16* bufferData = reinterpret_cast<const u16*>(buffer->data.data + bufferView->byte_offset + accessor->byte_offset); 
+
+                    for (u64 id = 0; id < accessor->count; id++)
+                    {
+                        _indices[_id_offset + id] = static_cast<u32>(bufferData[id]);
+                    }
+                }
+
+                _id_offset += mesh.sub_meshes[s].index_count;
+            }
+        }
+
+        _meshes.push_back(std::move(mesh));
+        meshIDs[i] = _meshes.size();
+    } 
+    
+    return meshIDs;
+}
+
+
+u32 application::import_node(get::node_world& nodeWorld, const tg3_model& model, i32 nodeIndex, u32 parentId, u32 prevSiblingId, std::vector<u32>& meshIds)
+{
+    const tg3_node& tg3node = model.nodes[nodeIndex];
+
+    auto [node, nodeID] = nodeWorld.create_node();
+    node.data().parent_id = parentId;
+
+    if (tg3node.has_matrix)
+    {
+        glm::mat4 transform(1);
+        float* transformPtr = glm::value_ptr(transform);
+        for (i32 i = 0; i < 16; i++)
+        {
+            transformPtr[i] = static_cast<f32>(tg3node.matrix[i]);
+        }
+        node.set_transform(transform);
+    }
+    else 
+    {
+        glm::vec3 translation(tg3node.translation[0], tg3node.translation[1], tg3node.translation[2]);
+        glm::quat rotation(tg3node.rotation[3], tg3node.rotation[0], tg3node.rotation[1], tg3node.rotation[2]);
+        glm::vec3 scale(tg3node.scale[0], tg3node.scale[1], tg3node.scale[2]);
+
+        node.set_translation(translation);
+        node.set_rotation(rotation);
+        node.set_scale(scale);
+    }
+
+    if (tg3node.mesh != -1)
+    {
+        node.data().mesh_id = meshIds[tg3node.mesh];
+    }
+
+    if (prevSiblingId)
+    {
+        auto& n = nodeWorld.get_node(prevSiblingId);
+        n.data().next_sibling_id = nodeID;
+    }
+
+    u32 lastChildID = 0;
+
+    for (size_t i = 0; i < tg3node.children_count; i++)
+    {
+        i32 childIndex = tg3node.children[i];
+        lastChildID = import_node(nodeWorld, model, childIndex, nodeID, lastChildID, meshIds);
+
+        if (!node.data().first_child_id)
+        {
+            node.data().first_child_id = lastChildID;
+        }
+    }
+
+    return nodeID;
+}
+
+std::vector<u32> application::upload_images(const std::vector<get::image>& images)
+{
+    VkCommandBuffer commandBuffer = start_transient_command_buffer();
+
+    std::vector<get::gpu_buffer> stagingBuffers;
+    stagingBuffers.reserve(images.size());
+
+    i32 targetColorChannels = 4;
+    std::vector<u32> imageIDs(images.size());
+    for (size_t i = 0; i < images.size(); i++)
+    {
+        const get::image& image = images[i];
+
+        if (image.data)
+        {
+            auto [imageID, stagingTextureBuffer] = create_image(commandBuffer, image.data, image.width, image.height, targetColorChannels);
+            imageIDs[i] = imageID;
+            stagingBuffers.push_back(stagingTextureBuffer);
+        }
+        else
+        {
+            imageIDs[i] = _fallback_image_id;
+        }
+    }
+
+    submit_transient_command_buffer(commandBuffer);
+
+    for (auto& stageBuffer : stagingBuffers)
+    {
+        _vma->destroy(stageBuffer.buffer, stageBuffer.allocation);
+    }
+
+    return imageIDs;
+}
+
+
+std::vector<get::image> application::load_images(const tg3_model& model, const std::filesystem::path& path)
+{
+    i32 targetColorChannels = 4;
+    std::vector<get::image> images(model.images_count);
+
+    for (u32 i = 0; i < model.images_count; i++)
+    {
+        get::image& img = images[i];
+        std::filesystem::path imagePath = path / model.images[i].uri.data;
+        std::print("SYSTEM: Loading image {}/{}: {}\n", i + 1, model.images_count, model.images[i].uri.data);
+
+        img.data = stbi_load(imagePath.string().c_str(), &img.width, &img.height, &img.channels, targetColorChannels);
+
+        if (!img.data)
+        {
+            throw std::runtime_error("SYSTEM: Failed to load image: " + imagePath.string());
+        }
+    }
+
+    return images;
 }
 
 void application::submit_transient_command_buffer(VkCommandBuffer commandBuffer)
@@ -182,14 +738,8 @@ std::pair<u32, get::gpu_buffer> application::create_image(VkCommandBuffer comman
     };
 
     VmaAllocationCreateInfo allocInfo { .usage = VMA_MEMORY_USAGE_AUTO };
-    get::gpu_image gpuImage {};
     
-    VkResult res = vmaCreateImage(_vma->get_allocator(), &imageInfo, &allocInfo, &gpuImage.image, &gpuImage.allocation, nullptr);
-    if (res != VK_SUCCESS)
-    {
-        throw std::runtime_error("SYSTEM: Failed to create image");
-        return { 0, get::gpu_buffer{}};
-    }
+    get::gpu_image gpuImage = _vma->create_image(&imageInfo, &allocInfo); 
 
     VkImageViewCreateInfo imageViewInfo
     {
@@ -205,7 +755,8 @@ std::pair<u32, get::gpu_buffer> application::create_image(VkCommandBuffer comman
         }
     };
 
-    res = vkCreateImageView(_vulkan_device->get_device(), &imageViewInfo, nullptr, &gpuImage.image_view);
+    VkResult res = vkCreateImageView(_vulkan_device->get_device(), &imageViewInfo, nullptr, &gpuImage.image_view);
+
     if (res != VK_SUCCESS)
     {
         throw std::runtime_error("SYSTEM: Failed to create image view");
@@ -242,7 +793,7 @@ std::pair<u32, get::gpu_buffer> application::create_image(VkCommandBuffer comman
 
     const size_t byteSize = width * height * channels;
     get::gpu_buffer stageBuffer = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, byteSize, true, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
-    mapCopyBufferData(stageBuffer, 0, imageData, byteSize);
+    _vma->copy_buffer_data(stageBuffer, 0, imageData, byteSize);
 
     VkBufferImageCopy bufferImageCopy
     {
@@ -297,19 +848,6 @@ std::pair<u32, get::gpu_buffer> application::create_image(VkCommandBuffer comman
     
 }
 
-void application::mapCopyBufferData(const get::gpu_buffer& buffer, size_t bufferOffset, void* data, size_t byteSize)
-{
-    void* bufferPtr = nullptr;
-    if (vmaMapMemory(_vma->get_allocator(), buffer.allocation, &bufferPtr) != VK_SUCCESS)
-    {
-        throw std::runtime_error("SYSTEM: Unable to map buffer memory");
-        return;
-    }
-
-    std::memcpy(static_cast<char*>(bufferPtr) + bufferOffset, data, byteSize);
-    vmaUnmapMemory(_vma->get_allocator(), buffer.allocation);
-}
-
 get::gpu_buffer application::create_buffer(VkBufferUsageFlags usage, size_t byteSize, bool mappable, VmaMemoryUsage memoryUsage)
 {
     VkBufferCreateInfo bufferInfo
@@ -326,24 +864,19 @@ get::gpu_buffer application::create_buffer(VkBufferUsageFlags usage, size_t byte
         .usage = memoryUsage,
     };
 
-    get::gpu_buffer gpuBuffer {};
-    VkResult res = vmaCreateBuffer(_vma->get_allocator(), &bufferInfo, &allocInfo, &gpuBuffer.buffer, &gpuBuffer.allocation, nullptr);
-    if (res != VK_SUCCESS)
-    {
-        throw std::runtime_error("SYSTEM: Failed to create buffer");
-        return get::gpu_buffer{};
-    }
+    
+   get::gpu_buffer gpuBuffer = _vma->create_buffer(&bufferInfo, &allocInfo);
 
-    // if (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
-    // {
-    //     VkBufferDeviceAddressInfo vertBdaInfo
-    //     {
-    //         .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-    //         .buffer = gpuBuffer.buffer
-    //     };
-    //
-    //     gpuBuffer.device_adress = vkGetBufferDeviceAddress(_vulkan_device->get_device(), &vertBdaInfo);
-    // }
+    if (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
+    {
+        VkBufferDeviceAddressInfo vertBdaInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+            .buffer = gpuBuffer.buffer
+        };
+
+        gpuBuffer.device_adress = vkGetBufferDeviceAddress(_vulkan_device->get_device(), &vertBdaInfo);
+    }
 
     return gpuBuffer;
 
@@ -470,6 +1003,57 @@ void application::render(int width, int height)
         _recreate_swapchain = true;
     }
 
+    _node_render_stack.clear();
+
+    u32 nodeID = _root_node_id;
+
+    while (nodeID)
+    {
+        get::node& node = _node_world->get_node(nodeID);
+        _node_render_stack.push_back({ &node, glm::mat4(1.0f) });
+        nodeID = node.data().next_sibling_id;
+    }
+
+    u32 drawIndex = 0;
+    while (!_node_render_stack.empty())
+    {
+        auto [node, parentTransform] = _node_render_stack.back();
+        _node_render_stack.pop_back();
+        glm::mat4 matWorld = parentTransform * node->get_transform();
+
+        if (node->data().mesh_id)
+        {
+            get::mesh& mesh = _meshes[node->data().mesh_id - 1];
+            for (auto& subMesh : mesh.sub_meshes)
+            {
+                resource.indirect_draw_ptr[drawIndex] = VkDrawIndexedIndirectCommand
+                {
+                    .indexCount = static_cast<u32>(subMesh.index_count),
+                    .instanceCount = 1,
+                    .firstIndex = static_cast<u32>(subMesh.index_start),
+                    .vertexOffset = static_cast<i32>(subMesh.vertex_start),
+                    .firstInstance = drawIndex
+                };
+
+                resource.render_item_ptr[drawIndex] = get::render_item 
+                {
+                    .wvp = _main_camera->get_view_projection_matrix() * matWorld,
+                    .world_matrix = matWorld,
+                    .material_index = subMesh.material_id - 1
+                };
+                drawIndex++;
+            }
+        }
+
+        u32 childNodeID = node->data().first_child_id;
+        while (childNodeID)
+        {
+            get::node& child = _node_world->get_node(childNodeID);
+            _node_render_stack.push_back({ &child, matWorld });
+            childNodeID = child.data().next_sibling_id;
+        }
+    }
+
     // begin recording commands
     VkCommandBufferBeginInfo commandBeginInfo
     {
@@ -573,6 +1157,35 @@ void application::render(int width, int height)
         .pDepthAttachment = &depthAttachInfo
     };
 
+    
+    auto gds = _descriptor_set->get_global_descriptor_set();  
+    vkCmdBindDescriptorSets(
+            resource.command_buffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            _vulkan_pipeline->get_layout(),
+            0,
+            1,
+            &gds,
+            0,
+            nullptr);
+    get::frame_constants frameConstants {};
+    get::gpu_buffer& vertBuffer = _buffers[_vertex_buffer_id - 1];
+    get::gpu_buffer& materialBuffer = _buffers[_material_buffer_id - 1];
+
+    frameConstants.vertex_buffer_address = vertBuffer.device_adress;
+    frameConstants.material_buffer_address = materialBuffer.device_adress;
+    frameConstants.render_items_address = resource.render_item_buffer.device_adress;
+    vkCmdPushConstants(
+            resource.command_buffer,
+            _vulkan_pipeline->get_layout(), 
+            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
+            0, 
+            sizeof(get::frame_constants), 
+            &frameConstants);
+
+    get::gpu_buffer& idxBuffer = _buffers[_index_buffer_id - 1];
+    vkCmdBindIndexBuffer(resource.command_buffer, idxBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
     // begin dynamic rendering
     vkCmdBeginRendering(resource.command_buffer, &renderingInfo);
     {
@@ -597,18 +1210,10 @@ void application::render(int width, int height)
             }
         };
 
-        get::push_constant_data pushData { .vpm = _main_camera->get_view_projection_matrix() };
-        vkCmdPushConstants(
-                resource.command_buffer,
-                _vulkan_pipeline->get_layout(),
-                VK_SHADER_STAGE_VERTEX_BIT, 
-                0,
-                static_cast<u32>(sizeof(get::push_constant_data)),
-                &pushData);
-
         vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
         vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _vulkan_pipeline->get_pipeline());
-        vkCmdDraw(resource.command_buffer, 3, 1, 0, 0);
+        // vkCmdDraw(resource.command_buffer, 3, 1, 0, 0);
+        vkCmdDrawIndexedIndirect(resource.command_buffer, resource.indirect_draw_buffer.buffer, 0, drawIndex, sizeof(VkDrawIndexedIndirectCommand));
     }
     vkCmdEndRendering(resource.command_buffer);
     
