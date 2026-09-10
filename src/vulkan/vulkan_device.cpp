@@ -12,6 +12,17 @@ get::vulkan_device::vulkan_device(VkPhysicalDevice device, u32 queueFamilyId)
     chain.features13.dynamicRendering = VK_TRUE;
     chain.features13.synchronization2 = VK_TRUE;
     chain.features12.timelineSemaphore = VK_TRUE;
+    chain.features12.bufferDeviceAddress = VK_TRUE;
+    chain.features12.descriptorBindingPartiallyBound = VK_TRUE;
+    chain.features12.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+    chain.features12.scalarBlockLayout = VK_TRUE;
+    chain.features12.descriptorIndexing = VK_TRUE;
+    chain.features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+    chain.features12.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+    chain.features12.descriptorBindingPartiallyBound = VK_TRUE;
+    chain.features12.runtimeDescriptorArray = VK_TRUE;
+    chain.features2.features.multiDrawIndirect = VK_TRUE;
+    chain.features2.features.shaderInt64 = VK_TRUE;
 
     std::vector<f32> queuePriorities { 1.0f };
     VkDeviceQueueCreateInfo queueInfo
@@ -58,11 +69,22 @@ void get::vulkan_device::check_supported_features(VkPhysicalDevice device) const
     vulkan_feature_chain chain;
     vkGetPhysicalDeviceFeatures2(device, chain.head());
 
-    const std::array<std::pair<VkBool32, const char*>, 3> required
+    const std::array<std::pair<VkBool32, const char*>, 14> required
     {{
         { chain.features13.dynamicRendering,  "dynamicRendering"  },
         { chain.features13.synchronization2,  "synchronization2"  },
         { chain.features12.timelineSemaphore, "timelineSemaphore" },
+        { chain.features12.bufferDeviceAddress, "bufferDeviceAddress "},
+        { chain.features12.descriptorBindingPartiallyBound, "descriptorBindingPartiallyBound" },
+        { chain.features12.descriptorBindingSampledImageUpdateAfterBind, "descriptorBindingSampledImageUpdateAfterBind" },
+        { chain.features12.scalarBlockLayout, "scalarBlockLayout" },
+        { chain.features12.shaderSampledImageArrayNonUniformIndexing, "shaderSampledImageArrayNonUniformIndexing"},
+        { chain.features12.descriptorIndexing, "descriptorIndexing"},
+        { chain.features12.descriptorBindingSampledImageUpdateAfterBind, "descriptorBindingSampledImageUpdateAfterBind"},
+        { chain.features12.descriptorBindingPartiallyBound, "descriptorBindingPartiallyBound" },
+        { chain.features12.runtimeDescriptorArray, "runtimeDescriptorArray" },
+        { chain.features2.features.shaderInt64, "shaderInt64" },
+        { chain.features2.features.multiDrawIndirect, "multiDrawIndirect" }
     }};
 
     std::string missing;
