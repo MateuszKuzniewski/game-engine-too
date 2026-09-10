@@ -88,6 +88,6 @@ namespace get
         get::gpu_buffer indirect_draw_buffer;
         get::gpu_buffer render_item_buffer;
         VkDrawIndexedIndirectCommand* indirect_draw_ptr = nullptr;
-        render_item* render_item_ptr;
+        render_item* render_item_ptr = nullptr;
     };
 }
