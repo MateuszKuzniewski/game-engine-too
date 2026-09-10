@@ -1,7 +1,7 @@
 #pragma once
 #include <volk.h>
 #include <vector>
-#include <frame_resources.h>
+#include <render_data.h>
 
 namespace get
 {
