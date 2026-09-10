@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <cstring>
 #include "vulkan_memory_allocator.h"
+#include <print>
 
 get::vulkan_memory_allocator::vulkan_memory_allocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device)
 {

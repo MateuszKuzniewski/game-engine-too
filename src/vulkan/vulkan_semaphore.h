@@ -2,7 +2,7 @@
 #include <volk.h>
 #include <vector>
 #include "types.h"
-#include "frame_resources.h"
+#include "render_data.h"
 
 namespace get
 {

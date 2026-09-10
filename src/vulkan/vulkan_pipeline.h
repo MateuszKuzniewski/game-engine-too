@@ -6,16 +6,11 @@
 
 namespace get
 {
-    struct push_constant_data
-    {
-        glm::mat4 vpm;
-    };
-
     class vulkan_pipeline
     {
     public:
 
-        vulkan_pipeline(VkDevice device, const shader& shader);
+        vulkan_pipeline(VkDevice device, const shader& shader, VkDescriptorSetLayout dsLayout);
         ~vulkan_pipeline();
         
         
