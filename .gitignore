@@ -4,6 +4,9 @@ build-*/
 out/
 cmake-build-*/
 
+# Assets
+assets/
+
 # CMake generated files
 CMakeCache.txt
 CMakeFiles/
