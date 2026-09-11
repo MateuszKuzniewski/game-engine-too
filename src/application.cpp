@@ -81,6 +81,24 @@ application::~application()
 {
     vkDeviceWaitIdle(_vulkan_device->get_device());
     
+    for (auto buffer : _buffers)
+    {
+        vkDestroyBuffer(_vulkan_device->get_device(), buffer.buffer, nullptr);
+        vmaFreeMemory(_vma->get_allocator(), buffer.allocation);
+    }
+
+    for (auto sampler : _samplers)
+    {
+        vkDestroySampler(_vulkan_device->get_device(), sampler, nullptr);
+    }
+
+    for (auto& img : _gpu_images)
+    {
+        vkDestroyImageView(_vulkan_device->get_device(), img.image_view, nullptr);
+        vkDestroyImage(_vulkan_device->get_device(), img.image, nullptr);
+        vmaFreeMemory(_vma->get_allocator(), img.allocation);
+    }
+
     for (auto& res : _frame_resources)
     {
         auto device = _vulkan_device->get_device();
@@ -96,13 +114,6 @@ application::~application()
         vmaUnmapMemory(allocator, res.render_item_buffer.allocation);
         vkDestroyBuffer(device, res.render_item_buffer.buffer, nullptr);
         vmaFreeMemory(allocator, res.render_item_buffer.allocation);
-    }
-
-    for (auto& img : _gpu_images)
-    {
-        vkDestroyImageView(_vulkan_device->get_device(), img.image_view, nullptr);
-        vkDestroyImage(_vulkan_device->get_device(), img.image, nullptr);
-        vmaFreeMemory(_vma->get_allocator(), img.allocation);
     }
 
     _gpu_images.clear();
@@ -166,12 +177,15 @@ void application::load_data()
     u32 fallbackSamplerID = _samplers.size();
     _textures.push_back(get::texture { .image_id = whiteImageId, .sampler_id = fallbackSamplerID });
 
-    // load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
-    load_gltf(get::directories::asset_path() + "/models/mario/scene.gltf");
+    load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
+    // load_gltf(get::directories::asset_path() + "/models/mario/scene.gltf");
     
     get::node& root = _node_world->get_node(_root_node_id);
-    root.set_scale(glm::vec3(0.01, 0.01, 0.01));
-    root.set_translation(glm::vec3(0, -5, 0));
+    root.set_scale(glm::vec3(0.1, 0.1, 0.1));
+    root.set_translation(glm::vec3(0, -10, -100));
+
+    auto x = glm::rotate(root.get_rotation(), glm::radians(45.0f), glm::vec3(0,0,1));
+    root.set_rotation(x);
 
     get::gpu_buffer vertexBufferStage = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, vertexBufferBytes, true, VMA_MEMORY_USAGE_AUTO);
     if (!vertexBufferStage.buffer)
@@ -444,9 +458,9 @@ std::vector<u32> application::load_textures(const tg3_model& model, const std::v
     for (size_t i = 0; i < model.textures_count; i++)
     {
         const tg3_texture& tex = model.textures[i];
-        _textures.push_back(get::texture { .image_id = images[tex.source], .sampler_id = samplers[tex.sampler]});
-        textureIDs[i] = _textures.size();
-    }
+        u32 samplerID = (tex.sampler >= 0) ? samplers[tex.sampler] : _fallback_image_id;
+        _textures.push_back(get::texture { .image_id = images[tex.source], .sampler_id = samplerID });
+        textureIDs[i] = static_cast<u32>(_textures.size());    }
 
     return textureIDs;
 }
@@ -516,7 +530,17 @@ std::vector<u32> application::load_meshes(const tg3_model& model, const std::vec
         for (size_t s = 0; s < tg3Mesh->primitives_count; s++)
         {
             const tg3_primitive* primitive = &tg3Mesh->primitives[s];
+            // mesh.sub_meshes[s].material_id = materials[primitive->material];
+        if (primitive->material >= 0)
+        {
+            assert(primitive->material < materials.size());
             mesh.sub_meshes[s].material_id = materials[primitive->material];
+        }
+        else
+        {
+            mesh.sub_meshes[s].material_id = 0;
+        }
+        printf("submesh material_id = %u (raw primitive->material = %d)\n", mesh.sub_meshes[s].material_id, primitive->material);
             mesh.sub_meshes[s].vertex_start = _vert_offset;
 
             for (size_t a = 0; a < primitive->attributes_count; a++)
@@ -586,7 +610,7 @@ std::vector<u32> application::load_meshes(const tg3_model& model, const std::vec
         _meshes.push_back(std::move(mesh));
         meshIDs[i] = _meshes.size();
     } 
-    
+
     return meshIDs;
 }
 
@@ -947,6 +971,7 @@ void application::run()
         }
         
         _main_camera->update(currentWidth, currentHeight);
+
         render(currentWidth, currentHeight);
         glfwPollEvents();
     }
@@ -1053,8 +1078,6 @@ void application::render(int width, int height)
             childNodeID = child.data().next_sibling_id;
         }
     }
-
-    std::println("drawIndex: {0}, maxnode: {1}", drawIndex, _node_world->max_nodes());
 
     // begin recording commands
     VkCommandBufferBeginInfo commandBeginInfo
@@ -1194,9 +1217,9 @@ void application::render(int width, int height)
         VkViewport viewport
         {
             .x = 0, 
-            .y = 0,
+            .y = static_cast<f32>(height),
             .width = static_cast<f32>(width),
-            .height = static_cast<f32>(height),
+            .height = -static_cast<f32>(height),
             .minDepth = 0,
             .maxDepth = 1
         };
