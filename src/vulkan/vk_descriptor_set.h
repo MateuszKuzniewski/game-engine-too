@@ -11,7 +11,7 @@ namespace get
     public:
 
         vk_descriptor_set(VkDevice device, const u32 maxTextures);
-        ~vk_descriptor_set() = default;
+        ~vk_descriptor_set();
 
         vk_descriptor_set(const vk_descriptor_set&) = delete;
         vk_descriptor_set(vk_descriptor_set&&) = delete;

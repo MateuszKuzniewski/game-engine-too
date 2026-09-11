@@ -80,6 +80,12 @@ get::vk_descriptor_set::vk_descriptor_set(VkDevice device, const u32 maxTextures
     }
 }
 
+get::vk_descriptor_set::~vk_descriptor_set()
+{
+    vkDestroyDescriptorSetLayout(_device, _global_descriptor_set_layout, nullptr);
+    vkDestroyDescriptorPool(_device, _pool, nullptr);
+}
+
 void get::vk_descriptor_set::update_texture_descriptors( 
                 const std::vector<get::texture>& textures,
                 const std::vector<VkSampler>& samplers,
