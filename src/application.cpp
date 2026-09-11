@@ -1054,6 +1054,8 @@ void application::render(int width, int height)
         }
     }
 
+    std::println("drawIndex: {0}, maxnode: {1}", drawIndex, _node_world->max_nodes());
+
     // begin recording commands
     VkCommandBufferBeginInfo commandBeginInfo
     {
@@ -1174,7 +1176,7 @@ void application::render(int width, int height)
 
     frameConstants.vertex_buffer_address = vertBuffer.device_adress;
     frameConstants.material_buffer_address = materialBuffer.device_adress;
-    frameConstants.render_items_address = resource.render_item_buffer.device_adress;
+    frameConstants.render_items_buffer_address = resource.render_item_buffer.device_adress;
     vkCmdPushConstants(
             resource.command_buffer,
             _vulkan_pipeline->get_layout(), 

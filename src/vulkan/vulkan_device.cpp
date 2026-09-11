@@ -22,6 +22,7 @@ get::vulkan_device::vulkan_device(VkPhysicalDevice device, u32 queueFamilyId)
     chain.features12.descriptorBindingPartiallyBound = VK_TRUE;
     chain.features12.runtimeDescriptorArray = VK_TRUE;
     chain.features2.features.multiDrawIndirect = VK_TRUE;
+    chain.features2.features.drawIndirectFirstInstance = VK_TRUE;
     chain.features2.features.shaderInt64 = VK_TRUE;
 
     std::vector<f32> queuePriorities { 1.0f };
@@ -69,7 +70,7 @@ void get::vulkan_device::check_supported_features(VkPhysicalDevice device) const
     vulkan_feature_chain chain;
     vkGetPhysicalDeviceFeatures2(device, chain.head());
 
-    const std::array<std::pair<VkBool32, const char*>, 14> required
+    const std::array<std::pair<VkBool32, const char*>, 15> required
     {{
         { chain.features13.dynamicRendering,  "dynamicRendering"  },
         { chain.features13.synchronization2,  "synchronization2"  },
@@ -84,7 +85,8 @@ void get::vulkan_device::check_supported_features(VkPhysicalDevice device) const
         { chain.features12.descriptorBindingPartiallyBound, "descriptorBindingPartiallyBound" },
         { chain.features12.runtimeDescriptorArray, "runtimeDescriptorArray" },
         { chain.features2.features.shaderInt64, "shaderInt64" },
-        { chain.features2.features.multiDrawIndirect, "multiDrawIndirect" }
+        { chain.features2.features.multiDrawIndirect, "multiDrawIndirect" },
+        { chain.features2.features.drawIndirectFirstInstance, "drawIndirectFirstInstance" },
     }};
 
     std::string missing;

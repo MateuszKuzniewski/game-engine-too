@@ -11,8 +11,8 @@ namespace get
     struct vertex
     {
         glm::vec3 position = glm::vec3(0.0f);
-        glm::vec3 normal = glm::vec3(1.0f);
         glm::vec3 color = glm::vec3(0.0f);
+        glm::vec3 normal = glm::vec3(1.0f);
         glm::vec2 uv = glm::vec2(0.0f);
     };
 
@@ -69,7 +69,7 @@ namespace get
     {
         u64 vertex_buffer_address;
         u64 material_buffer_address;
-        u64 render_items_address;
+        u64 render_items_buffer_address;
     };
 
     struct render_item 
