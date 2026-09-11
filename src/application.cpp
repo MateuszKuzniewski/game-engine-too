@@ -81,29 +81,29 @@ application::~application()
 {
     vkDeviceWaitIdle(_vulkan_device->get_device());
     
+    auto device = _vulkan_device->get_device();
+    auto allocator = _vma->get_allocator();
+
     for (auto buffer : _buffers)
     {
-        vkDestroyBuffer(_vulkan_device->get_device(), buffer.buffer, nullptr);
-        vmaFreeMemory(_vma->get_allocator(), buffer.allocation);
+        vkDestroyBuffer(device, buffer.buffer, nullptr);
+        vmaFreeMemory(allocator, buffer.allocation);
     }
 
     for (auto sampler : _samplers)
     {
-        vkDestroySampler(_vulkan_device->get_device(), sampler, nullptr);
+        vkDestroySampler(device, sampler, nullptr);
     }
 
     for (auto& img : _gpu_images)
     {
-        vkDestroyImageView(_vulkan_device->get_device(), img.image_view, nullptr);
-        vkDestroyImage(_vulkan_device->get_device(), img.image, nullptr);
-        vmaFreeMemory(_vma->get_allocator(), img.allocation);
+        vkDestroyImageView(device, img.image_view, nullptr);
+        vkDestroyImage(device, img.image, nullptr);
+        vmaFreeMemory(allocator, img.allocation);
     }
 
     for (auto& res : _frame_resources)
     {
-        auto device = _vulkan_device->get_device();
-        auto allocator = _vma->get_allocator();
-
         vkDestroySemaphore(device, res.image_acquired_semaphore, nullptr);
         vkDestroyCommandPool(device, res.command_pool, nullptr);
 
