@@ -1,8 +1,8 @@
 #include <vector>
 #include <stdexcept>
-#include "vulkan_queue_family.h"
+#include "vk_queue_family.h"
 
-get::vulkan_queue_family::vulkan_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface) 
+get::vk_queue_family::vk_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface) 
     : _queue_count(0), _graphics_queue_family_id(0)
 {
     vkGetPhysicalDeviceQueueFamilyProperties2(device, &_queue_count, nullptr);
@@ -30,7 +30,7 @@ get::vulkan_queue_family::vulkan_queue_family(VkPhysicalDevice device, VkSurface
     }
 }
 
-u32 get::vulkan_queue_family::get_queue_family_id() const
+u32 get::vk_queue_family::get_queue_family_id() const
 {
     return _graphics_queue_family_id;
 }

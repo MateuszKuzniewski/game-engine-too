@@ -1,7 +1,7 @@
 #include <stdexcept>
-#include "vulkan_surface.h"
+#include "vk_surface.h"
 
-get::vulkan_surface::vulkan_surface(const window& window, VkInstance instance) : _instance(instance)
+get::vk_surface::vk_surface(const window& window, VkInstance instance) : _instance(instance)
 {
     VkResult res = glfwCreateWindowSurface(instance, window.get_current_window(), nullptr, &_surface);
     if (res != VK_SUCCESS)
@@ -10,12 +10,12 @@ get::vulkan_surface::vulkan_surface(const window& window, VkInstance instance) :
     }   
 }
 
-get::vulkan_surface::~vulkan_surface()
+get::vk_surface::~vk_surface()
 {
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
 }
 
-VkSurfaceKHR get::vulkan_surface::get_surface() const
+VkSurfaceKHR get::vk_surface::get_surface() const
 {
     return _surface;
 }

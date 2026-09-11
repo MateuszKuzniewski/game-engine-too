@@ -1,9 +1,9 @@
 #include <stdexcept>
 #include <iostream>
 #include <vector>
-#include "vulkan_physical_device.h"
+#include "vk_physical_device.h"
 
-get::vulkan_physical_device::vulkan_physical_device(VkInstance instance) 
+get::vk_physical_device::vk_physical_device(VkInstance instance) 
     : _device_count(0), _instance(instance), _device(nullptr)
 {
     vkEnumeratePhysicalDevices(_instance, &_device_count, nullptr);
@@ -34,7 +34,7 @@ get::vulkan_physical_device::vulkan_physical_device(VkInstance instance)
     }
 }
 
-VkPhysicalDevice get::vulkan_physical_device::get_device() const
+VkPhysicalDevice get::vk_physical_device::get_device() const
 {
     return _device;
 }

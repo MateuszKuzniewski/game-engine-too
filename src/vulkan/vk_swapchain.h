@@ -5,12 +5,12 @@
 
 namespace get
 {
-    class vulkan_swapchain
+    class vk_swapchain
     {
     public:
 
-        vulkan_swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surfac);
-        ~vulkan_swapchain();
+        vk_swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surfac);
+        ~vk_swapchain();
 
         [[nodiscard]] VkSwapchainKHR get_swapchain();
 

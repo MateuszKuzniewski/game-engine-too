@@ -6,12 +6,12 @@
 
 namespace get
 {
-    class vulkan_context
+    class vk_context
     {
     public:
 
-        vulkan_context(const glfw_context& context, const std::string& title);
-        ~vulkan_context();
+        vk_context(const glfw_context& context, const std::string& title);
+        ~vk_context();
 
         VkInstance get_instance() { return _instance; }
 

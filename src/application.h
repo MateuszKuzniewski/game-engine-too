@@ -3,15 +3,16 @@
 #include <filesystem>
 #include "window.h"
 #include "glfw_context.h"
-#include "vulkan_surface.h"
-#include "vulkan_context.h"
-#include "vulkan_queue_family.h"
-#include "vulkan_physical_device.h"
-#include "vulkan_device.h"
-#include "vulkan_memory_allocator.h"
-#include "vulkan_swapchain.h"
-#include "vulkan_semaphore.h"
-#include "vulkan_pipeline.h"
+#include "vk_surface.h"
+#include "vk_context.h"
+#include "vk_queue_family.h"
+#include "vk_physical_device.h"
+#include "vk_device.h"
+#include "vk_memory_allocator.h"
+#include "vk_swapchain.h"
+#include "vk_semaphore.h"
+#include "vk_pipeline.h"
+#include "vk_descriptor_set.h"
 #include "depth_buffer.h"
 #include "shader.h"
 #include "command_pool.h"
@@ -20,7 +21,6 @@
 #include "render_data.h"
 #include "tiny_gltf_v3.h"
 #include "node_world.h"
-#include "vk_descriptor_set.h"
 
 class application
 {
@@ -100,18 +100,18 @@ private:
     std::vector<get::mesh> _meshes;
 
     std::unique_ptr<get::glfw_context> _glfw_context;
-    std::unique_ptr<get::vulkan_context> _vulkan_context;
+    std::unique_ptr<get::vk_context> _vulkan_context;
     std::unique_ptr<get::window> _window;
-    std::unique_ptr<get::vulkan_surface> _surface;
-    std::unique_ptr<get::vulkan_physical_device> _physical_device;
-    std::unique_ptr<get::vulkan_queue_family> _queue_family;
-    std::unique_ptr<get::vulkan_device> _vulkan_device;
-    std::unique_ptr<get::vulkan_memory_allocator> _vma;
-    std::unique_ptr<get::vulkan_swapchain> _swapchain;
+    std::unique_ptr<get::vk_surface> _surface;
+    std::unique_ptr<get::vk_physical_device> _physical_device;
+    std::unique_ptr<get::vk_queue_family> _queue_family;
+    std::unique_ptr<get::vk_device> _vulkan_device;
+    std::unique_ptr<get::vk_memory_allocator> _vma;
+    std::unique_ptr<get::vk_swapchain> _swapchain;
     std::unique_ptr<get::depth_buffer> _depth_buffer;
     std::unique_ptr<get::shader> _shader;
-    std::unique_ptr<get::vulkan_pipeline> _vulkan_pipeline;
-    std::unique_ptr<get::vulkan_sempahore> _semaphore;
+    std::unique_ptr<get::vk_pipeline> _vulkan_pipeline;
+    std::unique_ptr<get::vk_sempahore> _semaphore;
     std::unique_ptr<get::command_pool> _command_pool;
     std::unique_ptr<get::command_buffer> _command_buffer;
     std::unique_ptr<get::camera> _main_camera;

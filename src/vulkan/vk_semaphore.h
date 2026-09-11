@@ -6,12 +6,12 @@
 
 namespace get
 {
-    class vulkan_sempahore
+    class vk_sempahore
     {
     public:
 
-        vulkan_sempahore(VkDevice device, std::vector<frame_resource>& frameResources, u32 maxFramesInFlight);
-        ~vulkan_sempahore();
+        vk_sempahore(VkDevice device, std::vector<frame_resource>& frameResources, u32 maxFramesInFlight);
+        ~vk_sempahore();
 
         [[nodiscard]] VkSemaphore get_semaphore();
 

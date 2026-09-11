@@ -29,18 +29,18 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
     };
     
     _glfw_context =     std::make_unique<get::glfw_context>();
-    _vulkan_context =   std::make_unique<get::vulkan_context>(*_glfw_context, settings.title);
+    _vulkan_context =   std::make_unique<get::vk_context>(*_glfw_context, settings.title);
     _window =           std::make_unique<get::window>(settings);
-    _surface =          std::make_unique<get::vulkan_surface>(*_window, _vulkan_context->get_instance());
-    _physical_device =  std::make_unique<get::vulkan_physical_device>(_vulkan_context->get_instance());
-    _queue_family =     std::make_unique<get::vulkan_queue_family>(_physical_device->get_device(), _surface->get_surface());
-    _vulkan_device =    std::make_unique<get::vulkan_device>(_physical_device->get_device(), _queue_family->get_queue_family_id());
-    _vma =              std::make_unique<get::vulkan_memory_allocator>(
+    _surface =          std::make_unique<get::vk_surface>(*_window, _vulkan_context->get_instance());
+    _physical_device =  std::make_unique<get::vk_physical_device>(_vulkan_context->get_instance());
+    _queue_family =     std::make_unique<get::vk_queue_family>(_physical_device->get_device(), _surface->get_surface());
+    _vulkan_device =    std::make_unique<get::vk_device>(_physical_device->get_device(), _queue_family->get_queue_family_id());
+    _vma =              std::make_unique<get::vk_memory_allocator>(
                             _vulkan_context->get_instance(), 
                             _physical_device->get_device(), 
                             _vulkan_device->get_device());
 
-    _swapchain =        std::make_unique<get::vulkan_swapchain>(
+    _swapchain =        std::make_unique<get::vk_swapchain>(
                             _vulkan_device->get_device(), 
                             _physical_device->get_device(),
                             _surface->get_surface());
@@ -62,9 +62,9 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
 
     _descriptor_set =   std::make_unique<get::vk_descriptor_set>(_vulkan_device->get_device(), MAX_TEXTURES);
 
-    _vulkan_pipeline =  std::make_unique<get::vulkan_pipeline>( _vulkan_device->get_device(), *_shader, _descriptor_set->get_descriptor_set_layout());
+    _vulkan_pipeline =  std::make_unique<get::vk_pipeline>( _vulkan_device->get_device(), *_shader, _descriptor_set->get_descriptor_set_layout());
 
-    _semaphore =        std::make_unique<get::vulkan_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
+    _semaphore =        std::make_unique<get::vk_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
 
     _command_pool =     std::make_unique<get::command_pool>(_vulkan_device->get_device(), _queue_family->get_queue_family_id(), _frame_resources);
 

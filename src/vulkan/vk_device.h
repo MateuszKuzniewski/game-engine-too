@@ -26,12 +26,12 @@ namespace get
         VkPhysicalDeviceFeatures2* head() { return &features2; }
     };
 
-    class vulkan_device
+    class vk_device
     {
     public: 
 
-        vulkan_device(VkPhysicalDevice device, u32 queueFamilyId);
-        ~vulkan_device();
+        vk_device(VkPhysicalDevice device, u32 queueFamilyId);
+        ~vk_device();
 
         [[nodiscard]] VkDevice get_device() const;
         [[nodiscard]] VkQueue get_queue() const;

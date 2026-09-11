@@ -3,14 +3,14 @@
 #include <print>
 #include <iostream>
 #include "types.h"
-#include "vulkan_context.h"
+#include "vk_context.h"
 
-get::vulkan_context::vulkan_context(const glfw_context& context, const std::string& title)
+get::vk_context::vk_context(const glfw_context& context, const std::string& title)
 {
     create_vulkan_instance(context, title);
 }
 
-get::vulkan_context::~vulkan_context()
+get::vk_context::~vk_context()
 {
     if (_instance)
     {
@@ -20,7 +20,7 @@ get::vulkan_context::~vulkan_context()
     volkFinalize();
 }
 
-void get::vulkan_context::create_vulkan_instance(const glfw_context& context, const std::string& title)
+void get::vk_context::create_vulkan_instance(const glfw_context& context, const std::string& title)
 {
     VkResult res = volkInitialize();
 
@@ -76,7 +76,7 @@ void get::vulkan_context::create_vulkan_instance(const glfw_context& context, co
 }
 
 
-std::vector<const char*> get::vulkan_context::get_vulkan_extensions(const glfw_context& context) const
+std::vector<const char*> get::vk_context::get_vulkan_extensions(const glfw_context& context) const
 {
     u32 glfw_extension_count = 0;
     auto glfw_extensions = context.get_glfw_extensions(&glfw_extension_count);
@@ -100,7 +100,7 @@ std::vector<const char*> get::vulkan_context::get_vulkan_extensions(const glfw_c
     return required_extensions;
 };
 
-std::vector<const char*> get::vulkan_context::get_vulkan_validation_layers() const 
+std::vector<const char*> get::vk_context::get_vulkan_validation_layers() const 
 {
     std::vector<const char*> validation_layers
     {
@@ -110,7 +110,7 @@ std::vector<const char*> get::vulkan_context::get_vulkan_validation_layers() con
     return validation_layers;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL get::vulkan_context::debug_callback(
+VKAPI_ATTR VkBool32 VKAPI_CALL get::vk_context::debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,

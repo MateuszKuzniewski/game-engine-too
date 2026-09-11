@@ -1,10 +1,10 @@
 #include <stdexcept>
 #include <vector>
 #include <array>
-#include "vulkan_device.h"
+#include "vk_device.h"
 
 
-get::vulkan_device::vulkan_device(VkPhysicalDevice device, u32 queueFamilyId)
+get::vk_device::vk_device(VkPhysicalDevice device, u32 queueFamilyId)
 {
     check_supported_features(device);
     
@@ -60,12 +60,12 @@ get::vulkan_device::vulkan_device(VkPhysicalDevice device, u32 queueFamilyId)
     }
 }
 
-get::vulkan_device::~vulkan_device()
+get::vk_device::~vk_device()
 {
     vkDestroyDevice(_device, nullptr);
 }
 
-void get::vulkan_device::check_supported_features(VkPhysicalDevice device) const
+void get::vk_device::check_supported_features(VkPhysicalDevice device) const
 {
     vulkan_feature_chain chain;
     vkGetPhysicalDeviceFeatures2(device, chain.head());
@@ -105,12 +105,12 @@ void get::vulkan_device::check_supported_features(VkPhysicalDevice device) const
     }
 }
 
-VkDevice get::vulkan_device::get_device() const
+VkDevice get::vk_device::get_device() const
 {
     return _device;
 }
 
-VkQueue get::vulkan_device::get_queue() const
+VkQueue get::vk_device::get_queue() const
 {
     return _queue;
 }

@@ -1,9 +1,8 @@
 #include <stdexcept>
 #include <cstring>
-#include "vulkan_memory_allocator.h"
-#include <print>
+#include "vk_memory_allocator.h"
 
-get::vulkan_memory_allocator::vulkan_memory_allocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device)
+get::vk_memory_allocator::vk_memory_allocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device)
 {
     VmaVulkanFunctions vmaFunctionsInfo{};
     VmaAllocatorCreateInfo vmaAllocatorInfo
@@ -25,7 +24,7 @@ get::vulkan_memory_allocator::vulkan_memory_allocator(VkInstance instance, VkPhy
     }
 }
 
-get::gpu_buffer get::vulkan_memory_allocator::create_buffer(const VkBufferCreateInfo* bufferInfo, const VmaAllocationCreateInfo* allocInfo)
+get::gpu_buffer get::vk_memory_allocator::create_buffer(const VkBufferCreateInfo* bufferInfo, const VmaAllocationCreateInfo* allocInfo)
 {
     get::gpu_buffer result {};
     VkResult res = vmaCreateBuffer(_allocator, bufferInfo, allocInfo, &result.buffer, &result.allocation, nullptr);
@@ -40,7 +39,7 @@ get::gpu_buffer get::vulkan_memory_allocator::create_buffer(const VkBufferCreate
 }
 
 
-get::gpu_image get::vulkan_memory_allocator::create_image(const VkImageCreateInfo* createInfo, const VmaAllocationCreateInfo* allocInfo)
+get::gpu_image get::vk_memory_allocator::create_image(const VkImageCreateInfo* createInfo, const VmaAllocationCreateInfo* allocInfo)
 {
     get::gpu_image result {};
     VkResult res = vmaCreateImage(_allocator, createInfo, allocInfo, &result.image, &result.allocation, nullptr);
@@ -54,7 +53,7 @@ get::gpu_image get::vulkan_memory_allocator::create_image(const VkImageCreateInf
     return result;
 }
 
-void get::vulkan_memory_allocator::copy_buffer_data(const get::gpu_buffer& buffer, size_t bufferOffset, void* data, size_t byteSize)
+void get::vk_memory_allocator::copy_buffer_data(const get::gpu_buffer& buffer, size_t bufferOffset, void* data, size_t byteSize)
 {
     void* bufferPtr = nullptr;
     if (vmaMapMemory(_allocator, buffer.allocation, &bufferPtr) != VK_SUCCESS)
@@ -67,18 +66,18 @@ void get::vulkan_memory_allocator::copy_buffer_data(const get::gpu_buffer& buffe
     vmaUnmapMemory(_allocator, buffer.allocation);
 }
 
-void get::vulkan_memory_allocator::destroy(VkBuffer buffer, VmaAllocation allocation)
+void get::vk_memory_allocator::destroy(VkBuffer buffer, VmaAllocation allocation)
 {
     vmaDestroyBuffer(_allocator, buffer, allocation);
 }
 
-get::vulkan_memory_allocator::~vulkan_memory_allocator()
+get::vk_memory_allocator::~vk_memory_allocator()
 {
     if (_allocator)
         vmaDestroyAllocator(_allocator);
 }
 
-VmaAllocator get::vulkan_memory_allocator::get_allocator() const
+VmaAllocator get::vk_memory_allocator::get_allocator() const
 {
     return _allocator;
 }

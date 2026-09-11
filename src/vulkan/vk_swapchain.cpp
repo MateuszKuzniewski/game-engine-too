@@ -1,7 +1,7 @@
-#include "vulkan_swapchain.h"
+#include "vk_swapchain.h"
 #include <stdexcept>
 
-get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) 
+get::vk_swapchain::vk_swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) 
     :   _swapchain_format(VK_FORMAT_B8G8R8A8_SRGB), 
         _color_space(VK_COLORSPACE_SRGB_NONLINEAR_KHR),
         _device(device),
@@ -11,13 +11,13 @@ get::vulkan_swapchain::vulkan_swapchain(VkDevice device, VkPhysicalDevice physic
 {
 }
 
-get::vulkan_swapchain::~vulkan_swapchain()
+get::vk_swapchain::~vk_swapchain()
 {
     destroy();
 }
 
 
-void get::vulkan_swapchain::create(u32 width, u32 height)
+void get::vk_swapchain::create(u32 width, u32 height)
 {
     VkSurfaceCapabilitiesKHR surfaceCapabilites{};
     VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physical_device, _surface, &surfaceCapabilites);
@@ -99,7 +99,7 @@ void get::vulkan_swapchain::create(u32 width, u32 height)
     }
 }
 
-void get::vulkan_swapchain::destroy()
+void get::vk_swapchain::destroy()
 {
     for (auto& imageView : _swapchain_image_views)
     {
@@ -118,22 +118,22 @@ void get::vulkan_swapchain::destroy()
 
 }
 
-VkSwapchainKHR get::vulkan_swapchain::get_swapchain()
+VkSwapchainKHR get::vk_swapchain::get_swapchain()
 {
     return _swapchain;
 }
 
-std::vector<VkImage>& get::vulkan_swapchain::get_swapchain_images()
+std::vector<VkImage>& get::vk_swapchain::get_swapchain_images()
 {
     return _swapchain_images;
 }
 
-std::vector<VkImageView>& get::vulkan_swapchain::get_swapchain_image_views()
+std::vector<VkImageView>& get::vk_swapchain::get_swapchain_image_views()
 {
     return _swapchain_image_views;
 }
 
-std::vector<VkSemaphore>& get::vulkan_swapchain::get_render_complete_semaphores()
+std::vector<VkSemaphore>& get::vk_swapchain::get_render_complete_semaphores()
 {
     return _render_complete_semaphores;
 }

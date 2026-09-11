@@ -2,7 +2,6 @@
 #include "camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include "frame_time.h"
 
 get::camera::camera(u32 width, u32 height, const camera_settings settings) 
     : _settings(settings),

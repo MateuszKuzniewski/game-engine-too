@@ -6,18 +6,18 @@
 
 namespace get
 {
-    class vulkan_pipeline
+    class vk_pipeline
     {
     public:
 
-        vulkan_pipeline(VkDevice device, const shader& shader, VkDescriptorSetLayout dsLayout);
-        ~vulkan_pipeline();
+        vk_pipeline(VkDevice device, const shader& shader, VkDescriptorSetLayout dsLayout);
+        ~vk_pipeline();
         
         
-        vulkan_pipeline(const vulkan_pipeline&) = delete;
-        vulkan_pipeline(vulkan_pipeline&&) = delete;
-        vulkan_pipeline& operator=(const vulkan_pipeline&) = delete;
-        vulkan_pipeline& operator=(vulkan_pipeline&&) = delete;
+        vk_pipeline(const vk_pipeline&) = delete;
+        vk_pipeline(vk_pipeline&&) = delete;
+        vk_pipeline& operator=(const vk_pipeline&) = delete;
+        vk_pipeline& operator=(vk_pipeline&&) = delete;
 
         [[nodiscard]] VkPipeline get_pipeline() const;
         [[nodiscard]] VkPipelineLayout get_layout() const;

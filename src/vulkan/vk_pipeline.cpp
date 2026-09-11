@@ -2,10 +2,10 @@
 #include <vector>
 #include <array>
 #include "types.h"
-#include "vulkan_pipeline.h"
+#include "vk_pipeline.h"
 #include "render_data.h"
 
-get::vulkan_pipeline::vulkan_pipeline(VkDevice device, const shader& shader, VkDescriptorSetLayout dsLayout)
+get::vk_pipeline::vk_pipeline(VkDevice device, const shader& shader, VkDescriptorSetLayout dsLayout)
     : _shader_entry_point("main"), _device(device)
 {
     VkPushConstantRange pushConstantRange
@@ -160,18 +160,18 @@ get::vulkan_pipeline::vulkan_pipeline(VkDevice device, const shader& shader, VkD
     vkDestroyShaderModule(device, frag, nullptr);
 }
 
-get::vulkan_pipeline::~vulkan_pipeline()
+get::vk_pipeline::~vk_pipeline()
 {
     vkDestroyPipelineLayout(_device, _pipeline_layout, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
 }
 
-VkPipeline get::vulkan_pipeline::get_pipeline() const
+VkPipeline get::vk_pipeline::get_pipeline() const
 {
     return _pipeline;
 }
 
-VkPipelineLayout get::vulkan_pipeline::get_layout() const
+VkPipelineLayout get::vk_pipeline::get_layout() const
 {
     return _pipeline_layout;
 }
