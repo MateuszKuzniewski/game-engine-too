@@ -525,22 +525,23 @@ std::vector<u32> application::load_meshes(const tg3_model& model, const std::vec
             }
         };
 
-
         mesh.sub_meshes.resize(tg3Mesh->primitives_count);
+
         for (size_t s = 0; s < tg3Mesh->primitives_count; s++)
         {
             const tg3_primitive* primitive = &tg3Mesh->primitives[s];
             // mesh.sub_meshes[s].material_id = materials[primitive->material];
-        if (primitive->material >= 0)
-        {
-            assert(primitive->material < materials.size());
-            mesh.sub_meshes[s].material_id = materials[primitive->material];
-        }
-        else
-        {
-            mesh.sub_meshes[s].material_id = 0;
-        }
-        printf("submesh material_id = %u (raw primitive->material = %d)\n", mesh.sub_meshes[s].material_id, primitive->material);
+            
+            if (primitive->material >= 0)
+            {
+                assert(primitive->material < materials.size());
+                mesh.sub_meshes[s].material_id = materials[primitive->material];
+            }
+            else
+            {
+                mesh.sub_meshes[s].material_id = 0;
+            }
+
             mesh.sub_meshes[s].vertex_start = _vert_offset;
 
             for (size_t a = 0; a < primitive->attributes_count; a++)
