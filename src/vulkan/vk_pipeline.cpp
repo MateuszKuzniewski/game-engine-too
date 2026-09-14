@@ -6,7 +6,8 @@
 #include "render_data.h"
 
 get::vk_pipeline::vk_pipeline(VkDevice device, const shader& shader, VkDescriptorSetLayout dsLayout)
-    : _shader_entry_point("main"), _device(device)
+    :   _shader_entry_point("main"), 
+        _device(device)
 {
     VkPushConstantRange pushConstantRange
     {

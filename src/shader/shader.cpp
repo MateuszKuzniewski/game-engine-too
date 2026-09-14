@@ -23,7 +23,6 @@ VkShaderModule get::shader::compile(shader_type type) const
     }
 
     auto shaderPath = std::filesystem::path(get::directories::shader_path()) / filename;
-    // std::string shaderPath = "/home/v/dev/git/game-engine-too/shaders/" + filename;
     const std::string src = read_file(shaderPath);
     
     auto kind = convert_shader_type(type);

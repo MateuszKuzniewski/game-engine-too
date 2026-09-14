@@ -690,6 +690,7 @@ std::vector<u32> application::upload_images(const std::vector<get::image>& image
 
     i32 targetColorChannels = 4;
     std::vector<u32> imageIDs(images.size());
+
     for (size_t i = 0; i < images.size(); i++)
     {
         const get::image& image = images[i];
@@ -914,8 +915,6 @@ get::gpu_buffer application::create_buffer(VkBufferUsageFlags usage, size_t byte
     }
 
     return gpuBuffer;
-
-
 }
 
 VkCommandBuffer application::start_transient_command_buffer()
