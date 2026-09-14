@@ -175,7 +175,11 @@ void application::load_data()
 
     _samplers.push_back(sampler);
     u32 fallbackSamplerID = _samplers.size();
-    _textures.push_back(get::texture { .image_id = whiteImageId, .sampler_id = fallbackSamplerID });
+    _textures.push_back(
+    {
+        .image_id = whiteImageId, 
+        .sampler_id = fallbackSamplerID 
+    });
 
     load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
     // load_gltf(get::directories::asset_path() + "/models/mario/scene.gltf");
@@ -459,8 +463,14 @@ std::vector<u32> application::load_textures(const tg3_model& model, const std::v
     {
         const tg3_texture& tex = model.textures[i];
         u32 samplerID = (tex.sampler >= 0) ? samplers[tex.sampler] : _fallback_image_id;
-        _textures.push_back(get::texture { .image_id = images[tex.source], .sampler_id = samplerID });
-        textureIDs[i] = static_cast<u32>(_textures.size());    }
+        _textures.push_back(
+        { 
+            .image_id = images[tex.source], 
+            .sampler_id = samplerID 
+        });
+
+        textureIDs[i] = static_cast<u32>(_textures.size());    
+    }
 
     return textureIDs;
 }
@@ -474,16 +484,16 @@ std::vector<u32> application::load_materials(const tg3_model& model, const std::
     {
         const tg3_material* mat = &model.materials[i];
         _materials.push_back(get::material 
-            {
-                .base_color = glm::vec4(
-                        mat->pbr_metallic_roughness.base_color_factor[0],
-                        mat->pbr_metallic_roughness.base_color_factor[1],
-                        mat->pbr_metallic_roughness.base_color_factor[2],
-                        mat->pbr_metallic_roughness.base_color_factor[3]),
-                .texture_id = mat->pbr_metallic_roughness.base_color_texture.index != noTexture
-                    ? textures[mat->pbr_metallic_roughness.base_color_texture.index] - 1 
-                    : 0
-            });
+        {
+            .base_color = glm::vec4(
+                    mat->pbr_metallic_roughness.base_color_factor[0],
+                    mat->pbr_metallic_roughness.base_color_factor[1],
+                    mat->pbr_metallic_roughness.base_color_factor[2],
+                    mat->pbr_metallic_roughness.base_color_factor[3]),
+            .texture_id = mat->pbr_metallic_roughness.base_color_texture.index != noTexture
+                ? textures[mat->pbr_metallic_roughness.base_color_texture.index] - 1 
+                : 0
+        });
 
         materialIDs[i] = _materials.size();
     }
