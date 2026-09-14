@@ -19,15 +19,14 @@ get::vk_physical_device::vk_physical_device(VkInstance instance)
         VkPhysicalDeviceProperties properties{};
         vkGetPhysicalDeviceProperties(dev, &properties);
 
-        std::cout << "RENDERER: " << properties.deviceName << '\n';
-        std::cout << "VULKAN VERSION: " 
-            << VK_API_VERSION_MAJOR(properties.apiVersion) << "." 
-            << VK_API_VERSION_MINOR(properties.apiVersion) << "." 
-            << VK_API_VERSION_PATCH(properties.apiVersion) << '\n';
-        
-
         if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
         {
+            std::cout << "SELECTED RENDERER: " << properties.deviceName << '\n';
+            std::cout << "VULKAN VERSION: " 
+                << VK_API_VERSION_MAJOR(properties.apiVersion) << "." 
+                << VK_API_VERSION_MINOR(properties.apiVersion) << "." 
+                << VK_API_VERSION_PATCH(properties.apiVersion) << '\n';
+
             _device = dev;
             break;
         }
