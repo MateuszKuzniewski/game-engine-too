@@ -1,6 +1,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "camera.h"
 #include "frame_time.h"
+#include "world_data.h"
 
 
 get::camera::camera(u32 width, u32 height, const camera_settings settings) 
@@ -30,6 +31,8 @@ void get::camera::calculate_view()
 {
     _view_matrix = glm::translate(glm::mat4(1.0f), _position) * glm::mat4(_rotation);
     _view_matrix = glm::inverse(_view_matrix);
+
+    // _view_matrix = glm::lookAtRH(_position, glm::vec3(0), world::up);
 }
 
 void get::camera::move(glm::vec3 dir)

@@ -1,5 +1,7 @@
 #pragma once
 #include <functional>
+#include <unordered_set>
+#include <unordered_map>
 #include "window.h"
 #include "camera.h"
 
@@ -22,12 +24,13 @@ namespace get
     private:
     
         static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void key_press_event(i32 key, i32 action);
 
     private:
-        static inline i32 _current_key;
+        static inline std::unordered_set<i32> _held_keys;
 
         std::unordered_map<i32, std::function<void()>> _input;
-        
+        GLFWwindow* _win;
         camera& _camera;
     };
 }

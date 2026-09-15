@@ -21,15 +21,30 @@ get::input_manager::input_manager(const window& win, camera& cam)
 
 void get::input_manager::update()
 {
-    auto it = _input.find(_current_key); 
-    if (it != _input.end())
+    for (auto key : _held_keys)
     {
-        it->second();
+        auto it = _input.find(key); 
+        if (it != _input.end())
+        {
+            it->second();
+        }
     }
 }
 
 void get::input_manager::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    _current_key = key;
+    key_press_event(key, action);
+}
+
+void get::input_manager::key_press_event(i32 key, i32 action)
+{
+    if (action == GLFW_PRESS)
+    {
+        _held_keys.insert(key);
+    }
+    else if (action == GLFW_RELEASE)
+    {
+        _held_keys.erase(key);
+    }
 }
 
