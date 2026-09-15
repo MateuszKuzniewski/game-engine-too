@@ -26,6 +26,7 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
         .fov = 60.f,
         .near_clip = 0.1f,
         .far_clip = 10000.f,
+        .camera_speed = 0.8f
     };
     
     _glfw_context =     std::make_unique<get::glfw_context>();
@@ -72,7 +73,9 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
 
     _main_camera =      std::make_unique<get::camera>(settings.width, settings.height, cameraSettings);
     
-    _node_world =       std::make_unique<get::node_world>(1024);
+    _node_world =       std::make_unique<get::node_world>(MAX_NODES);
+
+    _input =            std::make_unique<get::input_manager>(*_window, *_main_camera);
     
     create_indirect_buffers();
 }
@@ -181,12 +184,13 @@ void application::load_data()
         .sampler_id = fallbackSamplerID 
     });
 
-    load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
     // load_gltf(get::directories::asset_path() + "/models/mario/scene.gltf");
-    
+    // load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
+    load_gltf(get::directories::asset_path() + "/models/city/scene.gltf");
+
     get::node& root = _node_world->get_node(_root_node_id);
-    root.set_scale(glm::vec3(0.1, 0.1, 0.1));
-    root.set_translation(glm::vec3(0, -10, -100));
+    // root.set_scale(glm::vec3(0.1, 0.1, 0.1));
+    // root.set_translation(glm::vec3(0, -10, -100));
 
     auto x = glm::rotate(root.get_rotation(), glm::radians(45.0f), glm::vec3(0,0,1));
     root.set_rotation(x);
@@ -980,6 +984,7 @@ void application::run()
             lastHeight = currentHeight;
         }
         
+        _input->update();
         _main_camera->update(currentWidth, currentHeight);
 
         render(currentWidth, currentHeight);
@@ -1192,7 +1197,7 @@ void application::render(int width, int height)
         .pDepthAttachment = &depthAttachInfo
     };
 
-    
+  
     auto gds = _descriptor_set->get_global_descriptor_set();  
     vkCmdBindDescriptorSets(
             resource.command_buffer,

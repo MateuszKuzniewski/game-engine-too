@@ -21,6 +21,8 @@
 #include "render_data.h"
 #include "tiny_gltf_v3.h"
 #include "node_world.h"
+#include "input_manager.h"
+
 
 class application
 {
@@ -67,6 +69,7 @@ private:
 private:
 
     static constexpr u32 MAX_TEXTURES = 1024;
+    static constexpr u32 MAX_NODES = 2048;
     
     u32 _vertex_buffer_id = 0;
     u32 _index_buffer_id = 0;
@@ -117,5 +120,6 @@ private:
     std::unique_ptr<get::camera> _main_camera;
     std::unique_ptr<get::node_world> _node_world;
     std::unique_ptr<get::vk_descriptor_set> _descriptor_set;
+    std::unique_ptr<get::input_manager> _input;
 };
 
