@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include "types.h"
 
 namespace get
@@ -10,17 +12,24 @@ namespace get
         f64 fov;
         f64 near_clip;
         f64 far_clip;
+        f32 camera_speed;
     };
 
     class camera
     {
     public:
-
+        
         camera(u32 width, u32 height, const camera_settings settings);
         ~camera() = default;
 
+        void update(f32 width, f32 height);
+    
+        void move(glm::vec3 dir);
+
+        void rotate(f32 angle, glm::vec3 axis);
+
         glm::mat4 get_view_projection_matrix();
-        void update(u32 width, u32 height);
+
         [[nodiscard]] glm::vec3 get_positon() const; 
 
     private:
@@ -30,9 +39,12 @@ namespace get
 
     private:
         
-        glm::vec3 _position = glm::vec3(0);
         camera_settings _settings;
-        f64 _roll;       
+
+        glm::quat _rotation = glm::quat(1,0,0,0);
+
+        glm::vec3 _position = glm::vec3(0);
+
         glm::mat4 _view_matrix;
         glm::mat4 _projection_matrix;
         glm::mat4 _view_projection_matrix;
