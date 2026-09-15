@@ -2,9 +2,9 @@
 #include "world_data.h"
 
 get::input_manager::input_manager(const window& win, camera& cam)
-    :   _window(win.get_current_window()), _camera(cam)
+    :    _camera(cam)
 {
-    glfwSetKeyCallback(_window, input_manager::key_callback);
+    glfwSetKeyCallback(win.get_current_window(), input_manager::key_callback);
     
     // camera -> move
     _input[GLFW_KEY_W] =        [this]() { _camera.move(world::forward);    };

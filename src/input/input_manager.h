@@ -28,7 +28,6 @@ namespace get
 
         std::unordered_map<i32, std::function<void()>> _input;
         
-        GLFWwindow* _window;
         camera& _camera;
     };
 }
