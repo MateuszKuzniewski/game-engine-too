@@ -31,8 +31,6 @@ void get::camera::calculate_view()
 {
     _view_matrix = glm::translate(glm::mat4(1.0f), _position) * glm::mat4(_rotation);
     _view_matrix = glm::inverse(_view_matrix);
-
-    // _view_matrix = glm::lookAtRH(_position, glm::vec3(0), world::up);
 }
 
 void get::camera::move(glm::vec3 dir)
@@ -58,3 +56,14 @@ glm::vec3 get::camera::get_positon() const
 {
     return _position;
 }
+
+glm::vec3 get::camera::get_view_dir() const
+{
+    return -glm::transpose(_view_matrix)[2];
+}
+
+glm::vec3 get::camera::get_right_dir() const
+{
+    return glm::transpose(_view_matrix)[0];
+}
+

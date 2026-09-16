@@ -7,6 +7,12 @@
 
 namespace get
 {
+    enum class camera_mode : i8
+    {
+        FREE = 0,
+        ORBIT
+    };
+
     struct camera_settings
     {
         f64 fov;
@@ -31,6 +37,8 @@ namespace get
         glm::mat4 get_view_projection_matrix();
 
         [[nodiscard]] glm::vec3 get_positon() const; 
+        [[nodiscard]] glm::vec3 get_view_dir() const;
+        [[nodiscard]] glm::vec3 get_right_dir() const;
 
     private:
 
