@@ -47,6 +47,8 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/*.cpp
     ${PROJECT_SOURCE_DIR}/ext/*.h
     ${PROJECT_SOURCE_DIR}/ext/*.cpp
+    ${PROJECT_SOURCE_DIR}/ext/imgui/*.h
+    ${PROJECT_SOURCE_DIR}/ext/imgui/*.cpp
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.h
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.cpp
     ${PROJECT_SOURCE_DIR}/src/glfw/*.h
@@ -63,6 +65,8 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/rendering/*.cpp
     ${PROJECT_SOURCE_DIR}/src/input/*.h
     ${PROJECT_SOURCE_DIR}/src/input/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/UI/*.h
+    ${PROJECT_SOURCE_DIR}/src/UI/*.cpp
 )
 
 
@@ -76,6 +80,7 @@ add_executable(get ${sources})
 target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/ext
+    ${PROJECT_SOURCE_DIR}/ext/imgui
     ${PROJECT_SOURCE_DIR}/src/buffer
     ${PROJECT_SOURCE_DIR}/src/glfw
     ${PROJECT_SOURCE_DIR}/src/shader
@@ -84,6 +89,7 @@ target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src/gltf
     ${PROJECT_SOURCE_DIR}/src/rendering
     ${PROJECT_SOURCE_DIR}/src/input
+    ${PROJECT_SOURCE_DIR}/src/UI
 )
 
 target_compile_options(get PRIVATE

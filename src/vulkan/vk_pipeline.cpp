@@ -112,7 +112,8 @@ get::vk_pipeline::vk_pipeline(VkDevice device, const shader& shader, VkDescripto
 
     std::vector<VkDynamicState> dynamicState
     {
-        VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
+        VK_DYNAMIC_STATE_VIEWPORT, 
+        VK_DYNAMIC_STATE_SCISSOR,
     };
 
     VkPipelineDynamicStateCreateInfo dynamicStateInfo

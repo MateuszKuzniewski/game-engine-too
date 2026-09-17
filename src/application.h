@@ -22,7 +22,7 @@
 #include "tiny_gltf_v3.h"
 #include "node_world.h"
 #include "input_manager.h"
-
+#include "gui.h"
 
 class application
 {
@@ -121,5 +121,6 @@ private:
     std::unique_ptr<get::node_world> _node_world;
     std::unique_ptr<get::vk_descriptor_set> _descriptor_set;
     std::unique_ptr<get::input_manager> _input;
+    std::unique_ptr<get::gui> _gui;
 };
 

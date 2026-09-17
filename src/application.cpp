@@ -26,7 +26,7 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
         .fov = 60.f,
         .near_clip = 0.1f,
         .far_clip = 10000.f,
-        .camera_speed = 0.8f
+        .camera_speed = 1.5f
     };
     
     _glfw_context =     std::make_unique<get::glfw_context>();
@@ -76,6 +76,8 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
     _node_world =       std::make_unique<get::node_world>(MAX_NODES);
 
     _input =            std::make_unique<get::input_manager>(*_window, *_main_camera);
+
+    _gui =              std::make_unique<get::gui>();
     
     create_indirect_buffers();
 }
@@ -1007,7 +1009,8 @@ void application::render(int width, int height)
 
     const u32 frameResIndex = _frame_index++ % _max_frames_in_flight;
     const u64 signalValue = ++_next_signal_value;
-    const u64 waitValue = (signalValue > _max_frames_in_flight) ? (signalValue - _max_frames_in_flight) : 0;
+    // const u64 waitValue = (signalValue > _max_frames_in_flight) ? (signalValue - _max_frames_in_flight) : 0;
+    const u64 waitValue = signalValue - _max_frames_in_flight;
 
     auto semaphore = _semaphore->get_semaphore();
     VkSemaphoreWaitInfo waitInfo
