@@ -63,7 +63,12 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
 
     _descriptor_set =   std::make_unique<get::vk_descriptor_set>(_vulkan_device->get_device(), MAX_TEXTURES);
 
-    _vulkan_pipeline =  std::make_unique<get::vk_pipeline>( _vulkan_device->get_device(), *_shader, _descriptor_set->get_descriptor_set_layout());
+    _vulkan_pipeline =  std::make_unique<get::vk_pipeline>(
+                            _vulkan_device->get_device(),
+                            *_shader,
+                            _descriptor_set->get_descriptor_set_layout(),
+                            _swapchain->get_format(),
+                            _depth_buffer->get_format());
 
     _semaphore =        std::make_unique<get::vk_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
 
@@ -77,7 +82,15 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
 
     _input =            std::make_unique<get::input_manager>(*_window, *_main_camera);
 
-    _gui =              std::make_unique<get::gui>();
+    _gui =              std::make_unique<get::gui>(
+                            *_window, 
+                            _swapchain->get_format(), 
+                            _vulkan_context->get_instance(),
+                            _physical_device->get_device(), 
+                            _vulkan_device->get_device(), 
+                            _queue_family->get_queue_family_id(), 
+                            _vulkan_device->get_queue(), 
+                            _max_frames_in_flight);
     
     create_indirect_buffers();
 }
@@ -933,6 +946,7 @@ VkCommandBuffer application::start_transient_command_buffer()
         .commandBufferCount = 1,
     };
 
+
     VkCommandBuffer commandBuffer = nullptr;
     VkResult res = vkAllocateCommandBuffers(_vulkan_device->get_device(), &allocInfo, &commandBuffer);
     if (res != VK_SUCCESS)
@@ -1185,7 +1199,7 @@ void application::render(int width, int height)
     VkRenderingInfo renderingInfo
     {
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-        .renderArea 
+        .renderArea = 
         {
             .offset { .x = 0, .y = 0 },
             .extent
@@ -1255,8 +1269,40 @@ void application::render(int width, int height)
 
         vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
         vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _vulkan_pipeline->get_pipeline());
-        // vkCmdDraw(resource.command_buffer, 3, 1, 0, 0);
         vkCmdDrawIndexedIndirect(resource.command_buffer, resource.indirect_draw_buffer.buffer, 0, drawIndex, sizeof(VkDrawIndexedIndirectCommand));
+    }
+    vkCmdEndRendering(resource.command_buffer);
+
+    VkRenderingAttachmentInfo uiColorAttachment
+    { 
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+        .imageView = _swapchain->get_swapchain_image_views()[imageIndex],
+        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE
+    };
+
+    VkRenderingInfo uiRenderingInfo
+    { 
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .renderArea = 
+        {
+            .offset { .x = 0, .y = 0 },
+            .extent
+            {
+                .width = static_cast<u32>(width),
+                .height = static_cast<u32>(height)
+            }
+        },
+    
+        .layerCount = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &uiColorAttachment
+    };
+
+    vkCmdBeginRendering(resource.command_buffer, &uiRenderingInfo);
+    {
+        _gui->render(resource.command_buffer);
     }
     vkCmdEndRendering(resource.command_buffer);
     
