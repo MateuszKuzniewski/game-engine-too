@@ -18,7 +18,7 @@ namespace get
         f64 fov;
         f64 near_clip;
         f64 far_clip;
-        f32 camera_speed;
+        f32 move_speed;
     };
 
     class camera

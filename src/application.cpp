@@ -26,7 +26,7 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
         .fov = 60.f,
         .near_clip = 0.1f,
         .far_clip = 10000.f,
-        .camera_speed = 1.5f
+        .move_speed = 1.5f
     };
     
     _glfw_context =     std::make_unique<get::glfw_context>();

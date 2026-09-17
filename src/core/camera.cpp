@@ -1,7 +1,6 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "camera.h"
 #include "frame_time.h"
-#include "world_data.h"
 
 
 get::camera::camera(u32 width, u32 height, const camera_settings settings) 
@@ -36,7 +35,7 @@ void get::camera::calculate_view()
 void get::camera::move(glm::vec3 dir)
 {
     f32 dt = static_cast<f32>(frame_time::delta_time());
-    _position += _settings.camera_speed *  dir * dt;
+    _position += _settings.move_speed *  dir * dt;
 }
 
 void get::camera::rotate(f32 angle, glm::vec3 axis)
