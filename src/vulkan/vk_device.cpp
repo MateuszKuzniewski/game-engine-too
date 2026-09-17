@@ -52,12 +52,14 @@ get::vk_device::vk_device(VkPhysicalDevice device, u32 queueFamilyId)
         throw std::runtime_error("SYSTEM: Failed to create logical device");
     }
     
+    volkLoadDevice(_device);
     vkGetDeviceQueue(_device, queueFamilyId, 0, &_queue);
 
     if (!_queue)
     {
         throw std::runtime_error("SYSTEM: Failed to create vulkan queue");
     }
+
 }
 
 get::vk_device::~vk_device()

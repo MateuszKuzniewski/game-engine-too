@@ -5,7 +5,12 @@
 #include "vk_pipeline.h"
 #include "render_data.h"
 
-get::vk_pipeline::vk_pipeline(VkDevice device, const shader& shader, VkDescriptorSetLayout dsLayout)
+get::vk_pipeline::vk_pipeline(
+    VkDevice device, 
+    const shader& shader,
+    VkDescriptorSetLayout dsLayout,
+    VkFormat swapchainFormat, 
+    VkFormat depthFormat)
     :   _shader_entry_point("main"), 
         _device(device)
 {
@@ -123,20 +128,18 @@ get::vk_pipeline::vk_pipeline(VkDevice device, const shader& shader, VkDescripto
         .pDynamicStates = dynamicState.data()
     };
 
-    VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
-    VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
-    VkPipelineRenderingCreateInfo renderInfo
+    _render_info = 
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
         .colorAttachmentCount = 1,
-        .pColorAttachmentFormats = &format,
+        .pColorAttachmentFormats = &swapchainFormat,
         .depthAttachmentFormat = depthFormat
     };
 
     VkGraphicsPipelineCreateInfo pipelineInfo
     {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext = &renderInfo,
+        .pNext = &_render_info,
         .stageCount = static_cast<u32>(shaderStages.size()),
         .pStages = shaderStages.data(),
         .pVertexInputState = &vertInputInfo,

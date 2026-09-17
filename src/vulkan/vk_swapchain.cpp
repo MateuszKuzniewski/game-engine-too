@@ -137,3 +137,8 @@ std::vector<VkSemaphore>& get::vk_swapchain::get_render_complete_semaphores()
 {
     return _render_complete_semaphores;
 }
+
+VkFormat get::vk_swapchain::get_format() const
+{
+    return _swapchain_format;
+}

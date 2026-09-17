@@ -17,6 +17,7 @@ namespace get
         [[nodiscard]] std::vector<VkImage>& get_swapchain_images();
         [[nodiscard]] std::vector<VkImageView>& get_swapchain_image_views();
         [[nodiscard]] std::vector<VkSemaphore>& get_render_complete_semaphores();
+        [[nodiscard]] VkFormat get_format() const;
 
         void create(u32 width, u32 height);
         void destroy();

@@ -10,7 +10,12 @@ namespace get
     {
     public:
 
-        vk_pipeline(VkDevice device, const shader& shader, VkDescriptorSetLayout dsLayout);
+        vk_pipeline(VkDevice device, 
+                    const shader& shader,
+                    VkDescriptorSetLayout dsLayout,
+                    VkFormat swapchainFormat, 
+                    VkFormat depthFormat);
+
         ~vk_pipeline();
         
         
@@ -28,5 +33,7 @@ namespace get
         VkPipelineLayout _pipeline_layout;
         VkPipeline _pipeline;
         VkDevice _device;
+
+        VkPipelineRenderingCreateInfo _render_info;
     };
 }
