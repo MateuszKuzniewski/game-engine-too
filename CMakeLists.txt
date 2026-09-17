@@ -49,6 +49,8 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/ext/*.cpp
     ${PROJECT_SOURCE_DIR}/ext/imgui/*.h
     ${PROJECT_SOURCE_DIR}/ext/imgui/*.cpp
+    ${PROJECT_SOURCE_DIR}/ext/imgui/backends/*.h
+    ${PROJECT_SOURCE_DIR}/ext/imgui/backends/*.cpp
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.h
     ${PROJECT_SOURCE_DIR}/src/vulkan/*.cpp
     ${PROJECT_SOURCE_DIR}/src/glfw/*.h
@@ -81,6 +83,7 @@ target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/ext
     ${PROJECT_SOURCE_DIR}/ext/imgui
+    ${PROJECT_SOURCE_DIR}/ext/imgui/backends
     ${PROJECT_SOURCE_DIR}/src/buffer
     ${PROJECT_SOURCE_DIR}/src/glfw
     ${PROJECT_SOURCE_DIR}/src/shader
@@ -97,6 +100,11 @@ target_compile_options(get PRIVATE
     -O0
     -fsanitize=address,undefined
     -fno-omit-frame-pointer
+)
+
+target_compile_definitions(get PRIVATE 
+    VK_NO_PROTOTYPES
+    IMGUI_IMPL_VULKAN_USE_VOLK
 )
 
 target_link_options(get PRIVATE
