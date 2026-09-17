@@ -78,3 +78,8 @@ VkImageView get::depth_buffer::get_image_view() const
 {
     return _depth_image_view;
 }
+
+VkFormat get::depth_buffer::get_format() const
+{
+    return _depth_format;
+}

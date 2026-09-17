@@ -22,6 +22,7 @@ namespace get
             
         [[nodiscard]] VkImage get_image() const;
         [[nodiscard]] VkImageView get_image_view() const;
+        [[nodiscard]] VkFormat get_format() const;
 
     private:
 
