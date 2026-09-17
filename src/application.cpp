@@ -203,12 +203,10 @@ void application::load_data()
     // load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
     load_gltf(get::directories::asset_path() + "/models/city/scene.gltf");
 
-    get::node& root = _node_world->get_node(_root_node_id);
+    // get::node& root = _node_world->get_node(_root_node_id);
     // root.set_scale(glm::vec3(0.1, 0.1, 0.1));
     // root.set_translation(glm::vec3(0, -10, -100));
 
-    auto x = glm::rotate(root.get_rotation(), glm::radians(45.0f), glm::vec3(0,0,1));
-    root.set_rotation(x);
 
     get::gpu_buffer vertexBufferStage = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, vertexBufferBytes, true, VMA_MEMORY_USAGE_AUTO);
     if (!vertexBufferStage.buffer)
@@ -1242,8 +1240,8 @@ void application::render(int width, int height)
 
     get::gpu_buffer& idxBuffer = _buffers[_index_buffer_id - 1];
     vkCmdBindIndexBuffer(resource.command_buffer, idxBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-
-    // begin dynamic rendering
+    
+    // scene render pass
     vkCmdBeginRendering(resource.command_buffer, &renderingInfo);
     {
         VkViewport viewport
@@ -1300,6 +1298,7 @@ void application::render(int width, int height)
         .pColorAttachments = &uiColorAttachment
     };
 
+    // UI render pass
     vkCmdBeginRendering(resource.command_buffer, &uiRenderingInfo);
     {
         _gui->render(resource.command_buffer);
