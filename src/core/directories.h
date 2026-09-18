@@ -9,7 +9,7 @@
   #include <vector>
 #elif defined(__linux__)
   #include <unistd.h>
-  #include <climits>
+  #include <limits.h>
 #endif
 
 
