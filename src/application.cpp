@@ -11,8 +11,9 @@
 application::application() : _frame_index(0), _max_frames_in_flight(2), _next_signal_value(2), _frame_resources(2)
 {
     std::println("{0}", "SYSTEM: Application was created");
-    std::println("{0}{1}", "SYSTEM: Project path is set to: ", get::directories::project_path());
-    std::println("{0}{1}", "SYSTEM: Shader path is set to: ", get::directories::shader_path());
+    std::println("{0}{1}", "SYSTEM: Project path is set to: ", get::directories::project_path().string());
+    std::println("{0}{1}", "SYSTEM: Shader path is set to: ", get::directories::shader_path().string());
+    std::println("{0}{1}", "SYSTEM: Asset path is set to: ", get::directories::asset_path().string());
 
     get::window_settings settings
     {
@@ -200,12 +201,11 @@ void application::load_data()
     });
 
     // load_gltf(get::directories::asset_path() + "/models/mario/scene.gltf");
-    // load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
-    load_gltf(get::directories::asset_path() + "/models/city/scene.gltf");
+    load_gltf(get::directories::asset_path() / "models/city/scene.gltf");
 
+    // load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
     // get::node& root = _node_world->get_node(_root_node_id);
-    // root.set_scale(glm::vec3(0.1, 0.1, 0.1));
-    // root.set_translation(glm::vec3(0, -10, -100));
+    // root.set_scale(glm::vec3(0.01, 0.01, 0.01));
 
 
     get::gpu_buffer vertexBufferStage = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, vertexBufferBytes, true, VMA_MEMORY_USAGE_AUTO);
@@ -844,8 +844,8 @@ std::pair<u32, get::gpu_buffer> application::create_image(VkCommandBuffer comman
 
     vkCmdPipelineBarrier2(commandBuffer, &transferDepInfo);
 
-    const size_t byteSize = width * height * channels;
-    get::gpu_buffer stageBuffer = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, byteSize, true, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
+    const u32 byteSize = width * height * channels;
+    get::gpu_buffer stageBuffer = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, static_cast<size_t>(byteSize), true, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
     _vma->copy_buffer_data(stageBuffer, 0, imageData, byteSize);
 
     VkBufferImageCopy bufferImageCopy
@@ -1021,8 +1021,7 @@ void application::render(int width, int height)
 
     const u32 frameResIndex = _frame_index++ % _max_frames_in_flight;
     const u64 signalValue = ++_next_signal_value;
-    // const u64 waitValue = (signalValue > _max_frames_in_flight) ? (signalValue - _max_frames_in_flight) : 0;
-    const u64 waitValue = signalValue - _max_frames_in_flight;
+    const u64 waitValue = (signalValue > _max_frames_in_flight) ? (signalValue - _max_frames_in_flight) : 0;
 
     auto semaphore = _semaphore->get_semaphore();
     VkSemaphoreWaitInfo waitInfo
@@ -1297,11 +1296,16 @@ void application::render(int width, int height)
         .colorAttachmentCount = 1,
         .pColorAttachments = &uiColorAttachment
     };
+    
+    get::render_debug_info debugInfo 
+    {
+        .sub_mesh_count = drawIndex,
+    };
 
     // UI render pass
     vkCmdBeginRendering(resource.command_buffer, &uiRenderingInfo);
     {
-        _gui->render(resource.command_buffer);
+        _gui->render(resource.command_buffer, debugInfo);
     }
     vkCmdEndRendering(resource.command_buffer);
     

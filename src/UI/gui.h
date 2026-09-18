@@ -2,6 +2,7 @@
 #include <volk.h>
 #include <imgui.h>
 #include "window.h"
+#include "render_data.h"
 
 namespace get
 {
@@ -25,13 +26,15 @@ namespace get
         gui& operator=(const gui&) = delete;
         gui& operator=(gui&&) = delete;
     
-        void render(VkCommandBuffer commandBuffer);
+        void render(VkCommandBuffer commandBuffer, const render_debug_info& info);
 
     
     private:
 
-        static void check_vk_result(VkResult err);
         void setup();
+        void prepare_debug_panel(const render_debug_info& info) const;
+
+        static void check_vk_result(VkResult err);
 
     private:
 

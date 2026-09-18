@@ -90,4 +90,11 @@ namespace get
         VkDrawIndexedIndirectCommand* indirect_draw_ptr = nullptr;
         render_item* render_item_ptr = nullptr;
     };
+
+    struct render_debug_info
+    {
+        u64 triangle_count;
+        u64 node_count;
+        u64 sub_mesh_count;
+    };
 }

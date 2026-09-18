@@ -70,6 +70,25 @@ get::gui::gui(
     ImGui_ImplVulkan_Init(&initInfo);
 }
 
+get::gui::~gui()
+{
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    vkDestroyDescriptorPool(_device, _imgui_pool, nullptr);
+}
+
+void get::gui::render(VkCommandBuffer commandBuffer, const render_debug_info& info)
+{
+    setup();
+    
+    prepare_debug_panel(info);
+
+    ImGui::Render();
+
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+}
+
 void get::gui::setup()
 {
     ImGui_ImplVulkan_NewFrame();
@@ -77,25 +96,13 @@ void get::gui::setup()
     ImGui::NewFrame();
 }
 
-void get::gui::render(VkCommandBuffer commandBuffer)
+void get::gui::prepare_debug_panel(const render_debug_info& info) const
 {
-    setup();
-    
     ImGui::Begin("Debug");
-    ImGui::Text("Hello from ImGui");
+    ImGui::Text("Average Time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    ImGui::Text("SubMesh Count: %lu", info.sub_mesh_count);
     ImGui::End();
-
-    ImGui::Render();
-
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
-}
-
-get::gui::~gui()
-{
-    ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    vkDestroyDescriptorPool(_device, _imgui_pool, nullptr);
 }
 
 void get::gui::check_vk_result(VkResult err) 
