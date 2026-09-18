@@ -22,8 +22,8 @@ VkShaderModule get::shader::compile(shader_type type) const
         case shader_type::FRAG: filename = _frag_shader_name; break;
     }
 
-    auto shaderPath = std::filesystem::path(get::directories::shader_path()) / filename;
-    const std::string src = read_file(shaderPath);
+    auto shaderPath = get::directories::shader_path() / filename;
+    const std::string src = read_file(shaderPath.string());
     
     auto kind = convert_shader_type(type);
 
