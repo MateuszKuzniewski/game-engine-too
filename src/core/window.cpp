@@ -2,9 +2,16 @@
 #include <print>
 #include "window.h"
 
-get::window::window(const window_settings& settings) : _width(settings.width), _height(settings.height)
+get::window::window(const window_settings& settings, bool sync) : _width(settings.width), _height(settings.height)
 {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    if (sync)
+    {
+        GLFWmonitor* primary = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(primary);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+    }
+
     _glfw_window = glfwCreateWindow(settings.width, settings.height, settings.title.c_str(), nullptr, nullptr);
     
     if (_glfw_window == nullptr)

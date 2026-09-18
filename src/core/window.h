@@ -18,7 +18,7 @@ namespace get
     {
     public:
 
-        window(const window_settings& settings);
+        window(const window_settings& settings, bool sync = false);
         ~window();
     
         window(const window&) = delete;
