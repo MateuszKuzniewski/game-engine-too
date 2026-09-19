@@ -1,2 +1,2 @@
 #!/bin/bash
-cmake --build build && LSAN_OPTIONS=suppressions=lsan_suppressions.txt ./build/Release/get
+cmake --build build --config Release && LSAN_OPTIONS=suppressions=lsan_suppressions.txt ./build/Release/get
