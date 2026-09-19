@@ -5,6 +5,15 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# --- Build type setup ---------------------------------------------------
+# Supported configs: Debug (sanitizers, no optimization), Release (optimized,
+# no sanitizers), RelWithDebInfo (optimized + debug symbols, no sanitizers).
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo" CACHE STRING "" FORCE)
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
+endif()
 
 find_package(Vulkan REQUIRED COMPONENTS volk)
 find_library(SHADERC_SHARED_LIB shaderc_shared REQUIRED)
@@ -71,11 +80,6 @@ file(GLOB sources
     ${PROJECT_SOURCE_DIR}/src/UI/*.cpp
 )
 
-
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
-endif()
-
 add_definitions(-DSOME_DEFINITIONS)
 add_executable(get ${sources})
 
@@ -95,20 +99,29 @@ target_include_directories(get PRIVATE
     ${PROJECT_SOURCE_DIR}/src/UI
 )
 
+# --- Per-config compile/link options -------------------------------------
+# Debug: no optimization, full sanitizers, debug symbols. 
+#
+# RelWithDebInfo: optimized, debug symbols kept, no sanitizers.
+#
+# Release: fully optimized, no debug info, no sanitizers, NDEBUG defined
+# (strips asserts).
+
 target_compile_options(get PRIVATE
-    -g
-    -O0
-    -fsanitize=address,undefined
-    -fno-omit-frame-pointer
+    $<$<CONFIG:Debug>:-g -O0 -fsanitize=address,undefined -fno-omit-frame-pointer>
+    $<$<CONFIG:RelWithDebInfo>:-g -O3>
+    $<$<CONFIG:Release>:-O3>
+)
+
+target_link_options(get PRIVATE
+    $<$<CONFIG:Debug>:-fsanitize=address,undefined>
 )
 
 target_compile_definitions(get PRIVATE 
     VK_NO_PROTOTYPES
     IMGUI_IMPL_VULKAN_USE_VOLK
-)
-
-target_link_options(get PRIVATE
-    -fsanitize=address,undefined
+    $<$<CONFIG:Release>:NDEBUG>
+    $<$<CONFIG:RelWithDebInfo>:NDEBUG>
 )
 
 if (WIN32)
