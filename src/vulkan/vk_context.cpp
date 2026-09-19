@@ -1,3 +1,4 @@
+#define VOLK_IMPLEMENTATION
 #include <stdexcept>
 #include <string>
 #include <print>
