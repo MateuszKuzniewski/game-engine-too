@@ -15,12 +15,12 @@ get::input_manager::input_manager(const window& win, camera& cam)
     _input[GLFW_KEY_C] =        [this]() { _camera.move(world::down); };
     
     // camera -> rotate
-    _input[GLFW_KEY_LEFT] =     [this]() { _camera.rotate(5.0f, world::up);       };
-    _input[GLFW_KEY_RIGHT] =    [this]() { _camera.rotate(-5.0f, world::up);      }; 
-    _input[GLFW_KEY_UP] =       [this]() { _camera.rotate(5.0f, world::right);    };
-    _input[GLFW_KEY_DOWN] =     [this]() { _camera.rotate(-5.0f, world::right);   };
-    _input[GLFW_KEY_E] =        [this]() { _camera.rotate(5.0f, world::forward);  };
-    _input[GLFW_KEY_Q] =        [this]() { _camera.rotate(-5.0f, world::forward); };
+    _input[GLFW_KEY_LEFT] =     [this]() { _camera.rotate(125.0f, world::up);       };
+    _input[GLFW_KEY_RIGHT] =    [this]() { _camera.rotate(-125.0f, world::up);      }; 
+    _input[GLFW_KEY_UP] =       [this]() { _camera.rotate(125.0f, world::right);    };
+    _input[GLFW_KEY_DOWN] =     [this]() { _camera.rotate(-125.0f, world::right);   };
+    _input[GLFW_KEY_E] =        [this]() { _camera.rotate(125.0f, world::forward);  };
+    _input[GLFW_KEY_Q] =        [this]() { _camera.rotate(-125.0f, world::forward); };
 }
 
 void get::input_manager::update()
