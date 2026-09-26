@@ -28,7 +28,7 @@ void get::camera::calculate_perspective(f64 ratio)
 
 void get::camera::calculate_view()
 {
-    _view_matrix = glm::translate(glm::mat4(1.0f), _position) * glm::mat4(_rotation);
+    _view_matrix = glm::translate(glm::mat4(1.0f), _position) * glm::mat4_cast(_rotation);
     _view_matrix = glm::inverse(_view_matrix);
 }
 
@@ -40,8 +40,9 @@ void get::camera::move(glm::vec3 dir)
 
 void get::camera::rotate(f32 angle, glm::vec3 axis)
 {
-    auto rot = glm::rotate(_rotation, glm::radians(angle), axis);
-    _rotation = glm::mat4(rot);
+    f32 dt = static_cast<f32>(frame_time::delta_time());
+    auto rot = glm::rotate(_rotation, glm::radians(angle * dt) , axis);
+    _rotation = glm::mat4_cast(rot);
 }
 
 glm::mat4 get::camera::get_view_projection_matrix() 

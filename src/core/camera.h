@@ -49,8 +49,7 @@ namespace get
         
         camera_settings _settings;
 
-        glm::quat _rotation = glm::quat(1,0,0,0);
-
+        glm::quat _rotation = glm::quat(1, 0, 0, 0);
         glm::vec3 _position = glm::vec3(0);
 
         glm::mat4 _view_matrix;
