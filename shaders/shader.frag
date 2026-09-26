@@ -17,9 +17,12 @@ void main()
     vec3 lightDirection = normalize(vec3(0,-1,-1));
     float d = max(dot(normal, -lightDirection), 0);
     vec4 texColor = texture(textures[_in_texture_index], _in_uv);
-
+    if (texColor.a < 0.1)
+    {
+        discard;
+    }
     // two-tone ambient light
-    vec3 skyColor = vec3(0.15, 0.18, 0.25);
+    vec3 skyColor = vec3(0.2, 0.3, 0.5);
     vec3 groundColor = vec3(0.05, 0.03, 0.02);
     float t = normal.y * 0.5 + 0.5;
     vec3 hemiAmbient = mix(groundColor, skyColor, t);

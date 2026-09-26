@@ -11,6 +11,7 @@ get::vk_device::vk_device(VkPhysicalDevice device, u32 queueFamilyId)
     vulkan_feature_chain chain;
     chain.features13.dynamicRendering = VK_TRUE;
     chain.features13.synchronization2 = VK_TRUE;
+    chain.features13.shaderDemoteToHelperInvocation = VK_TRUE;
     chain.features12.timelineSemaphore = VK_TRUE;
     chain.features12.bufferDeviceAddress = VK_TRUE;
     chain.features12.descriptorBindingPartiallyBound = VK_TRUE;
@@ -72,10 +73,11 @@ void get::vk_device::check_supported_features(VkPhysicalDevice device) const
     vulkan_feature_chain chain;
     vkGetPhysicalDeviceFeatures2(device, chain.head());
 
-    const std::array<std::pair<VkBool32, const char*>, 15> required
+    const std::array<std::pair<VkBool32, const char*>, 16> required
     {{
         { chain.features13.dynamicRendering,  "dynamicRendering"  },
         { chain.features13.synchronization2,  "synchronization2"  },
+        { chain.features13.shaderDemoteToHelperInvocation, "shaderDemoteToHelperInvocation" },
         { chain.features12.timelineSemaphore, "timelineSemaphore" },
         { chain.features12.bufferDeviceAddress, "bufferDeviceAddress "},
         { chain.features12.descriptorBindingPartiallyBound, "descriptorBindingPartiallyBound" },
