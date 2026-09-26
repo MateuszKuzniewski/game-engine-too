@@ -11,7 +11,7 @@
 #include "vk_memory_allocator.h"
 #include "vk_swapchain.h"
 #include "vk_semaphore.h"
-#include "vk_pipeline.h"
+#include "vk_pipeline_builder.h"
 #include "vk_descriptor_set.h"
 #include "depth_buffer.h"
 #include "shader.h"
@@ -113,7 +113,10 @@ private:
     std::unique_ptr<get::vk_swapchain> _swapchain;
     std::unique_ptr<get::depth_buffer> _depth_buffer;
     std::unique_ptr<get::shader> _shader;
-    std::unique_ptr<get::vk_pipeline> _vulkan_pipeline;
+    std::unique_ptr<get::shader> _depth_shader;
+    std::unique_ptr<get::vk_pipeline_builder> _pipeline_builder;
+    std::unique_ptr<get::vk_pipeline> _scene_pipeline;
+    std::unique_ptr<get::vk_pipeline> _depth_pipeline;
     std::unique_ptr<get::vk_sempahore> _semaphore;
     std::unique_ptr<get::command_pool> _command_pool;
     std::unique_ptr<get::command_buffer> _command_buffer;

@@ -51,10 +51,8 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
 
     _depth_buffer =     std::make_unique<get::depth_buffer>(
                             _vulkan_device->get_device(), 
-                            _vma->get_allocator(), 
-                            settings.width, 
-                            settings.height);
-
+                            _vma->get_allocator());
+                            
     _depth_buffer->create(settings.width, settings.height);
 
     _shader =           std::make_unique<get::shader>(
@@ -62,14 +60,30 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
                             "shader.vert",
                             "shader.frag");
 
+    _depth_shader =     std::make_unique<get::shader>(
+                            _vulkan_device->get_device(),
+                            "shader.vert",
+                            "depth_test.frag");
+
     _descriptor_set =   std::make_unique<get::vk_descriptor_set>(_vulkan_device->get_device(), MAX_TEXTURES);
 
-    _vulkan_pipeline =  std::make_unique<get::vk_pipeline>(
-                            _vulkan_device->get_device(),
-                            *_shader,
-                            _descriptor_set->get_descriptor_set_layout(),
-                            _swapchain->get_format(),
-                            _depth_buffer->get_format());
+    _pipeline_builder = std::make_unique<get::vk_pipeline_builder>(_vulkan_device->get_device());
+
+    _scene_pipeline = _pipeline_builder->
+         reset()
+        .set_shader(*_shader)
+        .add_descriptor_set_layout(_descriptor_set->get_descriptor_set_layout())
+        .set_formats(_swapchain->get_format(), _depth_buffer->get_format())
+        .set_depth_test(true, false, VK_COMPARE_OP_EQUAL)
+        .build();
+
+    _depth_pipeline = _pipeline_builder->
+         reset()
+        .set_shader(*_depth_shader)
+        .add_descriptor_set_layout(_descriptor_set->get_descriptor_set_layout())
+        .set_formats(_swapchain->get_format(), _depth_buffer->get_format())
+        .set_depth_test(true, true, VK_COMPARE_OP_LESS)
+        .build();
 
     _semaphore =        std::make_unique<get::vk_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
 
@@ -200,13 +214,14 @@ void application::load_data()
         .sampler_id = fallbackSamplerID 
     });
 
-    // load_gltf(get::directories::asset_path() + "/models/mario/scene.gltf");
-    load_gltf(get::directories::asset_path() / "models/city/scene.gltf");
+    const std::string car = "models/car/scene.gltf";
+    const std::string city = "models/city/scene.gltf";
 
-    // load_gltf(get::directories::asset_path() + "/models/car/scene.gltf");
+    std::filesystem::path path = get::directories::asset_path() / city;
+    load_gltf(path.string());
+
     // get::node& root = _node_world->get_node(_root_node_id);
-    // root.set_scale(glm::vec3(0.01, 0.01, 0.01));
-
+    // root.set_scale(glm::vec3(0.001, 0.001, 0.001));
 
     get::gpu_buffer vertexBufferStage = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, vertexBufferBytes, true, VMA_MEMORY_USAGE_AUTO);
     if (!vertexBufferStage.buffer)
@@ -238,7 +253,7 @@ void application::load_data()
     }
 
     _index_buffer_id = add_buffer(indexBuffer);
-    _vma->copy_buffer_data(indexBufferStage, 0, _indices.data(), _vertices.size() * sizeof(u32));
+    _vma->copy_buffer_data(indexBufferStage, 0, _indices.data(), _indices.size() * sizeof(u32));
 
     VkCommandBuffer geoCmdBuffer = start_transient_command_buffer();
     VkBufferCopy buffCopyVerts 
@@ -974,10 +989,10 @@ void application::run()
 {
     std::println("{0}", "SYSTEM: Application is running");
 
-    int currentWidth = 0;
-    int currentHeight = 0;
-    int lastWidth = 0;
-    int lastHeight = 0;
+    i32 currentWidth = 0;
+    i32 currentHeight = 0;
+    i32 lastWidth = 0;
+    i32 lastHeight = 0;
     auto window = _window->get_current_window();
 
     while (!glfwWindowShouldClose(window))
@@ -999,8 +1014,7 @@ void application::run()
         }
         
         _input->update();
-        _main_camera->update(currentWidth, currentHeight);
-
+        _main_camera->update((f32)currentWidth, (f32)currentHeight);
         render(currentWidth, currentHeight);
         glfwPollEvents();
     }
@@ -1165,8 +1179,118 @@ void application::render(int width, int height)
     };
     
     vkCmdPipelineBarrier2(resource.command_buffer, &dependencyInfo);
-    
-    // setup attachments
+        
+    VkClearValue clearColor 
+    {
+        .color = {{ 0.02f, 0.9f, 0.94f, 1.0f }},
+    };
+
+    get::frame_constants frameConstants {};
+    get::gpu_buffer& vertBuffer = _buffers[_vertex_buffer_id - 1];
+    get::gpu_buffer& materialBuffer = _buffers[_material_buffer_id - 1];
+
+    frameConstants.vertex_buffer_address = vertBuffer.device_adress;
+    frameConstants.material_buffer_address = materialBuffer.device_adress;
+    frameConstants.render_items_buffer_address = resource.render_item_buffer.device_adress;
+
+    get::gpu_buffer& idxBuffer = _buffers[_index_buffer_id - 1];
+    vkCmdBindIndexBuffer(resource.command_buffer, idxBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+ 
+
+    // depth buffer pass
+    VkRenderingAttachmentInfo depthOnlyColorInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .imageView = _swapchain->get_swapchain_image_views()[imageIndex],
+        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .clearValue = clearColor
+    };
+
+
+    VkRenderingAttachmentInfo depthOnlyAttachInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .imageView = _depth_buffer->get_image_view(),
+        .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .clearValue 
+        {
+            .depthStencil { 1.0f, 0 }
+        }
+    };
+
+    VkRenderingInfo renderingDepthInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .renderArea = 
+        {
+            .offset { .x = 0, .y = 0 },
+            .extent
+            {
+                .width = static_cast<u32>(width),
+                .height = static_cast<u32>(height)
+            }
+        },
+        .layerCount = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &depthOnlyColorInfo,
+        .pDepthAttachment = &depthOnlyAttachInfo
+    };
+
+    auto gds = _descriptor_set->get_global_descriptor_set();  
+    vkCmdBindDescriptorSets(
+            resource.command_buffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            _depth_pipeline->get_layout(),
+            0,
+            1,
+            &gds,
+            0,
+            nullptr);
+
+    vkCmdPushConstants(
+        resource.command_buffer,
+        _depth_pipeline->get_layout(), 
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
+        0, 
+        sizeof(get::frame_constants), 
+        &frameConstants);
+
+    vkCmdBeginRendering(resource.command_buffer, &renderingDepthInfo);
+    {
+        VkViewport viewport
+        {
+            .x = 0, 
+            .y = static_cast<f32>(height),
+            .width = static_cast<f32>(width),
+            .height = -static_cast<f32>(height),
+            .minDepth = 0,
+            .maxDepth = 1
+        };
+        vkCmdSetViewport(resource.command_buffer, 0, 1, &viewport);
+
+        VkRect2D scissor
+        {
+            .offset { .x = 0, .y = 0},
+            .extent 
+            { 
+                .width = static_cast<u32>(width),
+                .height = static_cast<u32>(height),
+            }
+        };
+
+        vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
+        vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _depth_pipeline->get_pipeline());
+        vkCmdDrawIndexedIndirect(resource.command_buffer, resource.indirect_draw_buffer.buffer, 0, drawIndex, sizeof(VkDrawIndexedIndirectCommand));
+
+    }
+    vkCmdEndRendering(resource.command_buffer);
+
+
+    // scene render pass
     VkRenderingAttachmentInfo colorAttachInfo
     {
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -1174,10 +1298,7 @@ void application::render(int width, int height)
         .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .clearValue 
-        { 
-            .color = {{ 0.01f, 0.01f, 0.01f, 1 }}
-        }
+        .clearValue = clearColor
     };
 
     VkRenderingAttachmentInfo depthAttachInfo
@@ -1185,7 +1306,7 @@ void application::render(int width, int height)
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
         .imageView = _depth_buffer->get_image_view(),
         .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
         .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .clearValue 
         {
@@ -1211,36 +1332,25 @@ void application::render(int width, int height)
         .pDepthAttachment = &depthAttachInfo
     };
 
-  
-    auto gds = _descriptor_set->get_global_descriptor_set();  
-    vkCmdBindDescriptorSets(
-            resource.command_buffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            _vulkan_pipeline->get_layout(),
-            0,
-            1,
-            &gds,
-            0,
-            nullptr);
-    get::frame_constants frameConstants {};
-    get::gpu_buffer& vertBuffer = _buffers[_vertex_buffer_id - 1];
-    get::gpu_buffer& materialBuffer = _buffers[_material_buffer_id - 1];
 
-    frameConstants.vertex_buffer_address = vertBuffer.device_adress;
-    frameConstants.material_buffer_address = materialBuffer.device_adress;
-    frameConstants.render_items_buffer_address = resource.render_item_buffer.device_adress;
     vkCmdPushConstants(
             resource.command_buffer,
-            _vulkan_pipeline->get_layout(), 
+            _scene_pipeline->get_layout(), 
             VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
             0, 
             sizeof(get::frame_constants), 
             &frameConstants);
 
-    get::gpu_buffer& idxBuffer = _buffers[_index_buffer_id - 1];
-    vkCmdBindIndexBuffer(resource.command_buffer, idxBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-    
-    // scene render pass
+    vkCmdBindDescriptorSets(
+            resource.command_buffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            _scene_pipeline->get_layout(),
+            0,
+            1,
+            &gds,
+            0,
+            nullptr);
+
     vkCmdBeginRendering(resource.command_buffer, &renderingInfo);
     {
         VkViewport viewport
@@ -1265,11 +1375,13 @@ void application::render(int width, int height)
         };
 
         vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
-        vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _vulkan_pipeline->get_pipeline());
+        vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _scene_pipeline->get_pipeline());
         vkCmdDrawIndexedIndirect(resource.command_buffer, resource.indirect_draw_buffer.buffer, 0, drawIndex, sizeof(VkDrawIndexedIndirectCommand));
     }
     vkCmdEndRendering(resource.command_buffer);
 
+
+    // UI render pass
     VkRenderingAttachmentInfo uiColorAttachment
     { 
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
@@ -1302,7 +1414,6 @@ void application::render(int width, int height)
         .sub_mesh_count = drawIndex,
     };
 
-    // UI render pass
     vkCmdBeginRendering(resource.command_buffer, &uiRenderingInfo);
     {
         _gui->render(resource.command_buffer, debugInfo);
