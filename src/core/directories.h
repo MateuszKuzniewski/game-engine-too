@@ -4,9 +4,6 @@
 
 #if defined(_WIN32)
   #include <windows.h>
-#elif defined(__APPLE__)
-  #include <mach-o/dyld.h>
-  #include <vector>
 #elif defined(__linux__)
   #include <unistd.h>
   #include <limits.h>
@@ -26,15 +23,7 @@ namespace get
             DWORD len = GetModuleFileNameW(nullptr, buf, MAX_PATH);
             if (len == 0 || len == MAX_PATH)
                 throw std::runtime_error("Failed to get executable path");
-            return std::filesystem::path(buf, buf + len);
-
-#elif defined(__APPLE__)
-            uint32_t size = 0;
-            _NSGetExecutablePath(nullptr, &size); // first call just gets required size
-            std::vector<char> buf(size);
-            if (_NSGetExecutablePath(buf.data(), &size) != 0)
-                throw std::runtime_error("Failed to get executable path");
-            return std::filesystem::canonical(buf.data());
+            return std::filesystem::path(buf, buf + len).parent_path().parent_path().parent_path()
 
 #elif defined(__linux__)
             char buf[PATH_MAX];
@@ -42,7 +31,7 @@ namespace get
             if (len == -1)
                 throw std::runtime_error("Failed to get executable path");
             buf[len] = '\0';
-            return std::filesystem::path(buf).parent_path().parent_path();
+            return std::filesystem::path(buf).parent_path().parent_path().parent_path();
 
 #else
             #error "Unsupported platform"
