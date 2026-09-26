@@ -9,6 +9,7 @@
 get::shader::shader(VkDevice device, const std::string& vertshader, const std::string& fragShader)
     :   _vert_shader_name(vertshader),
         _frag_shader_name(fragShader),
+        _shader_entry_point("main"),
         _device(device)
 {
 }
@@ -61,6 +62,11 @@ VkShaderModule get::shader::compile(shader_type type) const
     }
 
     return module;
+}
+
+std::string get::shader::get_entry_point() const
+{
+    return _shader_entry_point;
 }
 
 shaderc_shader_kind get::shader::convert_shader_type(shader_type type) const
