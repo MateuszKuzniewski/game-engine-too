@@ -98,7 +98,16 @@ void get::gui::setup()
 
 void get::gui::prepare_debug_panel(const render_debug_info& info) const
 {
-    ImGui::Begin("Debug");
+    std::string title = " ";
+
+#ifndef NDEBUG
+    title = "Build: Debug";
+#elifndef NRELEASE
+    title = "Build: Release";
+#endif
+
+    auto conv = title.c_str();
+    ImGui::Begin(conv);
     ImGui::Text("Average Time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::Text("SubMesh Count: %lu", info.sub_mesh_count);
