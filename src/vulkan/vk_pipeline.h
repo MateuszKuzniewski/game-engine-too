@@ -1,5 +1,4 @@
 #pragma once
-#include <string>
 #include <volk.h>
 #include <glm/matrix.hpp>
 #include "shader.h"
@@ -10,11 +9,15 @@ namespace get
     {
     public:
 
-        vk_pipeline(VkDevice device, 
-                    const shader& shader,
-                    VkDescriptorSetLayout dsLayout,
-                    VkFormat swapchainFormat, 
-                    VkFormat depthFormat);
+        vk_pipeline(
+                VkDevice device, 
+                const shader& shader,
+                const std::vector<VkDescriptorSetLayout>& dsLayout,
+                VkFormat swapchainFormat, 
+                VkFormat depthFormat,
+                VkPipelineColorBlendAttachmentState attachState,
+                VkPipelineDepthStencilStateCreateInfo depthStencilInfo,
+                VkPipelineRasterizationStateCreateInfo rasterInfo);
 
         ~vk_pipeline();
         
@@ -26,14 +29,22 @@ namespace get
 
         [[nodiscard]] VkPipeline get_pipeline() const;
         [[nodiscard]] VkPipelineLayout get_layout() const;
+    
+    private:
+
+        VkResult create_layout(const std::vector<VkDescriptorSetLayout>& descriptorSetLayout);
+        VkResult create_pipeline(
+                const shader& shader, 
+                VkFormat swapchainFormat,
+                VkFormat depthFormat,
+                VkPipelineColorBlendAttachmentState attachState,
+                VkPipelineDepthStencilStateCreateInfo depthStencilInfo,
+                VkPipelineRasterizationStateCreateInfo rasterInfo);
 
     private:
 
-        const std::string _shader_entry_point;
         VkPipelineLayout _pipeline_layout;
         VkPipeline _pipeline;
         VkDevice _device;
-
-        VkPipelineRenderingCreateInfo _render_info;
     };
 }
