@@ -9,7 +9,7 @@ namespace get
     {
     public:
 
-        depth_buffer(VkDevice device, VmaAllocator allocator, u32 width, u32 height);
+        depth_buffer(VkDevice device, VmaAllocator allocator);
         ~depth_buffer();
 
         depth_buffer(const depth_buffer&) = delete;
