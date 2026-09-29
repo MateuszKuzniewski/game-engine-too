@@ -103,6 +103,8 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
                                         *_vulkan_device,
                                         *_swapchain,
                                         *_semaphore,
+                                        *_descriptor_set,
+                                        *_depth_buffer,
                                         _vulkan_context->get_instance(),
                                         _physical_device->get_device(), 
                                         _queue_family->get_queue_family_id(), 
@@ -1049,7 +1051,6 @@ void application::render(int width, int height)
 
     vkWaitSemaphores(_vulkan_device->get_device(), &waitInfo, UINT64_MAX);
     
-    // start working on the frame
     auto& resource = _frame_resources[frameResIndex];
     vkResetCommandPool(_vulkan_device->get_device(), resource.command_pool, 0);
 
@@ -1181,11 +1182,7 @@ void application::render(int width, int height)
     
     vkCmdPipelineBarrier2(resource.command_buffer, &dependencyInfo);
         
-    VkClearValue clearColor 
-    {
-        .color = {{ 0.02f, 0.9f, 0.94f, 1.0f }},
-    };
-
+    
     get::frame_constants frameConstants {};
     get::gpu_buffer& vertBuffer = _buffers[_vertex_buffer_id - 1];
     get::gpu_buffer& materialBuffer = _buffers[_material_buffer_id - 1];
@@ -1197,167 +1194,20 @@ void application::render(int width, int height)
     get::gpu_buffer& idxBuffer = _buffers[_index_buffer_id - 1];
     vkCmdBindIndexBuffer(resource.command_buffer, idxBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
  
-
-    // depth buffer pass
-    VkRenderingAttachmentInfo depthOnlyColorInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-        .imageView = _swapchain->get_swapchain_image_views()[imageIndex],
-        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .clearValue = clearColor
-    };
-
-
-    VkRenderingAttachmentInfo depthOnlyAttachInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-        .imageView = _depth_buffer->get_image_view(),
-        .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .clearValue 
-        {
-            .depthStencil { 1.0f, 0 }
-        }
-    };
-
-    VkRenderingInfo renderingDepthInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-        .renderArea = 
-        {
-            .offset { .x = 0, .y = 0 },
-            .extent
-            {
-                .width = static_cast<u32>(width),
-                .height = static_cast<u32>(height)
-            }
-        },
-        .layerCount = 1,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &depthOnlyColorInfo,
-        .pDepthAttachment = &depthOnlyAttachInfo
-    };
-
-    auto gds = _descriptor_set->get_global_descriptor_set();  
-    vkCmdBindDescriptorSets(
-            resource.command_buffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            _depth_pipeline->get_layout(),
-            0,
-            1,
-            &gds,
-            0,
-            nullptr);
-
-    vkCmdPushConstants(
-        resource.command_buffer,
-        _depth_pipeline->get_layout(), 
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
-        0, 
-        sizeof(get::frame_constants), 
-        &frameConstants);
-    
+    // depth pass
+    auto renderingDepthInfo = _renderer->prepare_frame(VK_ATTACHMENT_LOAD_OP_CLEAR, resource, frameConstants, _scene_pipeline->get_layout(), imageIndex, width, height);
     _renderer->submit(resource, _depth_pipeline->get_pipeline(), renderingDepthInfo, width, height, drawIndex); 
 
-    // scene render pass
-    VkRenderingAttachmentInfo colorAttachInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-        .imageView = _swapchain->get_swapchain_image_views()[imageIndex],
-        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .clearValue = clearColor
-    };
-
-    VkRenderingAttachmentInfo depthAttachInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-        .imageView = _depth_buffer->get_image_view(),
-        .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .clearValue 
-        {
-            .depthStencil { 1.0f, 0 }
-        }
-    };
-
-    VkRenderingInfo renderingInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-        .renderArea = 
-        {
-            .offset { .x = 0, .y = 0 },
-            .extent
-            {
-                .width = static_cast<u32>(width),
-                .height = static_cast<u32>(height)
-            }
-        },
-        .layerCount = 1,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachInfo,
-        .pDepthAttachment = &depthAttachInfo
-    };
-
-
-    vkCmdPushConstants(
-            resource.command_buffer,
-            _scene_pipeline->get_layout(), 
-            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
-            0, 
-            sizeof(get::frame_constants), 
-            &frameConstants);
-
-    vkCmdBindDescriptorSets(
-            resource.command_buffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            _scene_pipeline->get_layout(),
-            0,
-            1,
-            &gds,
-            0,
-            nullptr);
-    
+    // scene pass
+    auto renderingInfo = _renderer->prepare_frame(VK_ATTACHMENT_LOAD_OP_LOAD, resource, frameConstants, _scene_pipeline->get_layout(), imageIndex, width, height);
     _renderer->submit(resource, _scene_pipeline->get_pipeline(), renderingInfo, width, height, drawIndex);
 
-    // UI render pass
-    VkRenderingAttachmentInfo uiColorAttachment
-    { 
-        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-        .imageView = _swapchain->get_swapchain_image_views()[imageIndex],
-        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE
-    };
-
-    VkRenderingInfo uiRenderingInfo
-    { 
-        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-        .renderArea = 
-        {
-            .offset { .x = 0, .y = 0 },
-            .extent
-            {
-                .width = static_cast<u32>(width),
-                .height = static_cast<u32>(height)
-            }
-        },
-    
-        .layerCount = 1,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &uiColorAttachment
-    };
-    
     get::render_debug_info debugInfo 
     {
         .sub_mesh_count = drawIndex,
     };
-
+    
+    auto uiRenderingInfo = _renderer->prepare_frame(VK_ATTACHMENT_LOAD_OP_LOAD, resource, frameConstants, nullptr, imageIndex, width, height);
     _renderer->submit(resource, uiRenderingInfo, debugInfo);
 
     _renderer->present(resource, imageIndex, imageAcquiredSemaphore, signalValue);

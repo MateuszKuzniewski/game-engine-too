@@ -22,7 +22,6 @@
 #include "tiny_gltf_v3.h"
 #include "node_world.h"
 #include "input_manager.h"
-#include "gui.h"
 #include "renderer.h"
 
 class application
