@@ -85,7 +85,7 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
         .set_depth_test(true, true, VK_COMPARE_OP_LESS)
         .build();
 
-    _semaphore =        std::make_unique<get::vk_sempahore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
+    _semaphore =        std::make_unique<get::vk_semaphore>(_vulkan_device->get_device(), _frame_resources, _max_frames_in_flight);
 
     _command_pool =     std::make_unique<get::command_pool>(_vulkan_device->get_device(), _queue_family->get_queue_family_id(), _frame_resources);
 
@@ -100,12 +100,12 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
     
     _renderer =         std::make_unique<get::renderer>(
                                         *_window, 
-                                        _swapchain->get_format(), 
+                                        *_vulkan_device,
+                                        *_swapchain,
+                                        *_semaphore,
                                         _vulkan_context->get_instance(),
                                         _physical_device->get_device(), 
-                                        _vulkan_device->get_device(), 
                                         _queue_family->get_queue_family_id(), 
-                                        _vulkan_device->get_queue(), 
                                         _max_frames_in_flight);
 
     create_indirect_buffers();
@@ -1053,13 +1053,13 @@ void application::render(int width, int height)
     auto& resource = _frame_resources[frameResIndex];
     vkResetCommandPool(_vulkan_device->get_device(), resource.command_pool, 0);
 
-    VkSemaphore imageAcquireSemaphore = _frame_resources[frameResIndex].image_acquired_semaphore;
+    VkSemaphore imageAcquiredSemaphore = _frame_resources[frameResIndex].image_acquired_semaphore;
 
     u32 imageIndex = 0;
     VkResult res = vkAcquireNextImageKHR(_vulkan_device->get_device(),
                                             _swapchain->get_swapchain(),
                                             UINT64_MAX,
-                                            imageAcquireSemaphore,
+                                            imageAcquiredSemaphore,
                                             VK_NULL_HANDLE, &imageIndex);
 
     if (res == VK_ERROR_OUT_OF_DATE_KHR)
@@ -1260,7 +1260,7 @@ void application::render(int width, int height)
         sizeof(get::frame_constants), 
         &frameConstants);
     
-    _renderer->submit(_depth_pipeline->get_pipeline(), renderingDepthInfo, resource, width, height, drawIndex); 
+    _renderer->submit(resource, _depth_pipeline->get_pipeline(), renderingDepthInfo, width, height, drawIndex); 
 
     // scene render pass
     VkRenderingAttachmentInfo colorAttachInfo
@@ -1323,7 +1323,7 @@ void application::render(int width, int height)
             0,
             nullptr);
     
-    _renderer->submit(_scene_pipeline->get_pipeline(), renderingInfo, resource, width, height, drawIndex);
+    _renderer->submit(resource, _scene_pipeline->get_pipeline(), renderingInfo, width, height, drawIndex);
 
     // UI render pass
     VkRenderingAttachmentInfo uiColorAttachment
@@ -1360,90 +1360,5 @@ void application::render(int width, int height)
 
     _renderer->submit(resource, uiRenderingInfo, debugInfo);
 
-    // change memory layout of the swapchain to display the image
-    VkImageMemoryBarrier2 presentLayoutBarrier
-    {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-        .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-        .dstStageMask = VK_PIPELINE_STAGE_2_NONE,
-        .dstAccessMask = 0,
-        .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        .image = _swapchain->get_swapchain_images()[imageIndex],
-        .subresourceRange
-        {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1,
-        }
-    };
-
-    VkDependencyInfo presentDependencyInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-        .imageMemoryBarrierCount = 1,
-        .pImageMemoryBarriers = &presentLayoutBarrier
-    };
-
-    vkCmdPipelineBarrier2(resource.command_buffer, &presentDependencyInfo);
-    vkEndCommandBuffer(resource.command_buffer);
-    
-    // ensure swapchain image is available to start color output
-    VkSemaphoreSubmitInfo imageAcquireWaitInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-        .semaphore = imageAcquireSemaphore,
-        .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT
-    };
-
-    std::vector<VkSemaphoreSubmitInfo> semaphoreSignals
-    {
-        {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = _swapchain->get_render_complete_semaphores()[imageIndex],
-            .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = _semaphore->get_semaphore(),
-            .value = signalValue,
-            .stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
-        }
-    };
-
-    VkCommandBufferSubmitInfo cmdSubmitInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-        .commandBuffer = resource.command_buffer,
-    };
-
-    VkSubmitInfo2 submitInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-        .waitSemaphoreInfoCount = 1,
-        .pWaitSemaphoreInfos = &imageAcquireWaitInfo,
-        .commandBufferInfoCount = 1,
-        .pCommandBufferInfos = &cmdSubmitInfo,
-        .signalSemaphoreInfoCount = static_cast<u32>(semaphoreSignals.size()),
-        .pSignalSemaphoreInfos = semaphoreSignals.data()
-    };
-
-    vkQueueSubmit2(_vulkan_device->get_queue(), 1, &submitInfo, VK_NULL_HANDLE);
-
-    auto swapchain = _swapchain->get_swapchain();
-    VkPresentInfoKHR presentInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .waitSemaphoreCount = 1,
-        .pWaitSemaphores = &_swapchain->get_render_complete_semaphores()[imageIndex],
-        .swapchainCount = 1,
-        .pSwapchains = &swapchain,
-        .pImageIndices = &imageIndex,
-        .pResults = nullptr
-    };
-
-    vkQueuePresentKHR(_vulkan_device->get_queue(), &presentInfo);
+    _renderer->present(resource, imageIndex, imageAcquiredSemaphore, signalValue);
 }

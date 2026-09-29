@@ -118,7 +118,7 @@ private:
     std::unique_ptr<get::vk_pipeline_builder> _pipeline_builder;
     std::unique_ptr<get::vk_pipeline> _scene_pipeline;
     std::unique_ptr<get::vk_pipeline> _depth_pipeline;
-    std::unique_ptr<get::vk_sempahore> _semaphore;
+    std::unique_ptr<get::vk_semaphore> _semaphore;
     std::unique_ptr<get::command_pool> _command_pool;
     std::unique_ptr<get::command_buffer> _command_buffer;
     std::unique_ptr<get::camera> _main_camera;
