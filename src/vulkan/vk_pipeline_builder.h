@@ -33,9 +33,9 @@ namespace get
         VkFormat _color_format = VK_FORMAT_UNDEFINED;
         VkFormat _depth_format = VK_FORMAT_UNDEFINED;
 
-        std::vector<VkDescriptorSetLayout> _descriptorSetLayouts;
+        std::vector<VkDescriptorSetLayout> _descriptor_set_layouts;
 
-        VkPipelineColorBlendAttachmentState _colorBlendAttachment
+        VkPipelineColorBlendAttachmentState _color_blend_attachment
         {
             .blendEnable = VK_FALSE,
             .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |

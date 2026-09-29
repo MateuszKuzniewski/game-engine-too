@@ -19,7 +19,7 @@ get::vk_swapchain::~vk_swapchain()
 
 void get::vk_swapchain::create(u32 width, u32 height)
 {
-    VkSurfaceCapabilitiesKHR surfaceCapabilites{};
+    VkSurfaceCapabilitiesKHR surfaceCapabilites;
     VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physical_device, _surface, &surfaceCapabilites);
     if (res != VK_SUCCESS)
     {
