@@ -97,16 +97,17 @@ application::application() : _frame_index(0), _max_frames_in_flight(2), _next_si
 
     _input =            std::make_unique<get::input_manager>(*_window, *_main_camera);
 
-    _gui =              std::make_unique<get::gui>(
-                            *_window, 
-                            _swapchain->get_format(), 
-                            _vulkan_context->get_instance(),
-                            _physical_device->get_device(), 
-                            _vulkan_device->get_device(), 
-                            _queue_family->get_queue_family_id(), 
-                            _vulkan_device->get_queue(), 
-                            _max_frames_in_flight);
     
+    _renderer =         std::make_unique<get::renderer>(
+                                        *_window, 
+                                        _swapchain->get_format(), 
+                                        _vulkan_context->get_instance(),
+                                        _physical_device->get_device(), 
+                                        _vulkan_device->get_device(), 
+                                        _queue_family->get_queue_family_id(), 
+                                        _vulkan_device->get_queue(), 
+                                        _max_frames_in_flight);
+
     create_indirect_buffers();
 }
 
@@ -1258,37 +1259,8 @@ void application::render(int width, int height)
         0, 
         sizeof(get::frame_constants), 
         &frameConstants);
-
-    vkCmdBeginRendering(resource.command_buffer, &renderingDepthInfo);
-    {
-        VkViewport viewport
-        {
-            .x = 0, 
-            .y = static_cast<f32>(height),
-            .width = static_cast<f32>(width),
-            .height = -static_cast<f32>(height),
-            .minDepth = 0,
-            .maxDepth = 1
-        };
-        vkCmdSetViewport(resource.command_buffer, 0, 1, &viewport);
-
-        VkRect2D scissor
-        {
-            .offset { .x = 0, .y = 0},
-            .extent 
-            { 
-                .width = static_cast<u32>(width),
-                .height = static_cast<u32>(height),
-            }
-        };
-
-        vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
-        vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _depth_pipeline->get_pipeline());
-        vkCmdDrawIndexedIndirect(resource.command_buffer, resource.indirect_draw_buffer.buffer, 0, drawIndex, sizeof(VkDrawIndexedIndirectCommand));
-
-    }
-    vkCmdEndRendering(resource.command_buffer);
-
+    
+    _renderer->submit(_depth_pipeline->get_pipeline(), renderingDepthInfo, resource, width, height, drawIndex); 
 
     // scene render pass
     VkRenderingAttachmentInfo colorAttachInfo
@@ -1350,36 +1322,8 @@ void application::render(int width, int height)
             &gds,
             0,
             nullptr);
-
-    vkCmdBeginRendering(resource.command_buffer, &renderingInfo);
-    {
-        VkViewport viewport
-        {
-            .x = 0, 
-            .y = static_cast<f32>(height),
-            .width = static_cast<f32>(width),
-            .height = -static_cast<f32>(height),
-            .minDepth = 0,
-            .maxDepth = 1
-        };
-        vkCmdSetViewport(resource.command_buffer, 0, 1, &viewport);
-
-        VkRect2D scissor
-        {
-            .offset { .x = 0, .y = 0},
-            .extent 
-            { 
-                .width = static_cast<u32>(width),
-                .height = static_cast<u32>(height),
-            }
-        };
-
-        vkCmdSetScissor(resource.command_buffer, 0, 1, &scissor);
-        vkCmdBindPipeline(resource.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _scene_pipeline->get_pipeline());
-        vkCmdDrawIndexedIndirect(resource.command_buffer, resource.indirect_draw_buffer.buffer, 0, drawIndex, sizeof(VkDrawIndexedIndirectCommand));
-    }
-    vkCmdEndRendering(resource.command_buffer);
-
+    
+    _renderer->submit(_scene_pipeline->get_pipeline(), renderingInfo, resource, width, height, drawIndex);
 
     // UI render pass
     VkRenderingAttachmentInfo uiColorAttachment
@@ -1414,12 +1358,8 @@ void application::render(int width, int height)
         .sub_mesh_count = drawIndex,
     };
 
-    vkCmdBeginRendering(resource.command_buffer, &uiRenderingInfo);
-    {
-        _gui->render(resource.command_buffer, debugInfo);
-    }
-    vkCmdEndRendering(resource.command_buffer);
-    
+    _renderer->submit(resource, uiRenderingInfo, debugInfo);
+
     // change memory layout of the swapchain to display the image
     VkImageMemoryBarrier2 presentLayoutBarrier
     {
