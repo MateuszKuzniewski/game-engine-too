@@ -5,13 +5,12 @@
 
 get::gui::gui(
         const window& win,
+        const vk_device& device,
         VkFormat format,
         VkInstance instance,
         VkPhysicalDevice physicalDevice,
-        VkDevice device,
         u32 queueFamilyID,
-        VkQueue queue,
-        u32 swapchainImageCount) : _device(device)
+        u32 swapchainImageCount) : _device(device.get_device())
 {
 
     // From ImGui example code
@@ -56,9 +55,9 @@ get::gui::gui(
     {
         .Instance = instance,
         .PhysicalDevice = physicalDevice,
-        .Device = device,
+        .Device = device.get_device(),
         .QueueFamily = queueFamilyID,
-        .Queue = queue,
+        .Queue = device.get_queue(),
         .DescriptorPool = _imgui_pool,
         .MinImageCount = swapchainImageCount,
         .ImageCount = swapchainImageCount,

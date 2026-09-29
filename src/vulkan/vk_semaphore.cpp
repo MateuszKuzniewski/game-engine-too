@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include "vk_semaphore.h"
 
-get::vk_sempahore::vk_sempahore(VkDevice device, std::vector<frame_resource>& frameResources, u32 maxFramesInFlight) 
+get::vk_semaphore::vk_semaphore(VkDevice device, std::vector<frame_resource>& frameResources, u32 maxFramesInFlight) 
     : _device(device) 
 {
     VkSemaphoreTypeCreateInfo semahoreTypeInfo
@@ -37,12 +37,12 @@ get::vk_sempahore::vk_sempahore(VkDevice device, std::vector<frame_resource>& fr
     }
 }
 
-get::vk_sempahore::~vk_sempahore()
+get::vk_semaphore::~vk_semaphore()
 {
     vkDestroySemaphore(_device, _timeline_semaphore, nullptr);
 }
 
-VkSemaphore get::vk_sempahore::get_semaphore()
+VkSemaphore get::vk_semaphore::get_semaphore()
 {
     return _timeline_semaphore;
 }

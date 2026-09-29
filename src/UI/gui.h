@@ -1,6 +1,7 @@
 #pragma once
 #include <volk.h>
 #include <imgui.h>
+#include <vk_device.h>
 #include "window.h"
 #include "render_data.h"
 
@@ -11,12 +12,11 @@ namespace get
     public:
 
         gui(const window& win,
+            const vk_device& device,
             VkFormat format,
             VkInstance instance,
             VkPhysicalDevice physicalDevice,
-            VkDevice device,
             u32 queueFamilyID,
-            VkQueue queue,
             u32 swapchainImageCount);
 
         ~gui();
