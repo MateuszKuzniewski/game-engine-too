@@ -23,7 +23,7 @@ namespace get
             DWORD len = GetModuleFileNameW(nullptr, buf, MAX_PATH);
             if (len == 0 || len == MAX_PATH)
                 throw std::runtime_error("Failed to get executable path");
-            return std::filesystem::path(buf, buf + len).parent_path().parent_path().parent_path()
+            return std::filesystem::path(buf, buf + len).parent_path().parent_path().parent_path();
 
 #elif defined(__linux__)
             char buf[PATH_MAX];
