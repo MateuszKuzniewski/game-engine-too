@@ -12,6 +12,7 @@ A modern Vulkan rendering engine written in C++, built around a GPU-driven rende
 
 ## Requirements
 - VulkanSDK 1.3 or newer
+- C++ 23 or newer
 - Shaderc (Comes with SDK on windows, install seperately on Linux)
 - Clangd 22.0 or newer
 - CMake 4.0 or newer
