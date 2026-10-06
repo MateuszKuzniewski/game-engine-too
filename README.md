@@ -62,4 +62,4 @@ or run the bash scripts
 - W S A D -> Camera move
 - Arrows -> Camera rotate
 - Space -> Up
-- C -> Down
+- c -> Down
