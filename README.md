@@ -36,12 +36,11 @@ Change "Debug" to "Release" for release build
 cmake --build build --config Debug
 ```
 ## Add assets folder
-To add render assets add following folder structure to the root folder
+To render a scene, add following folder structure to the root folder
 ```shell
 assets/models/your-folder
 ```
-
-then go to application.cpp and change the line 
+then go to application.cpp and change the line 223
 ```shell
 const std::string your_model = "models/your_folder/your_scene.gltf";
 
