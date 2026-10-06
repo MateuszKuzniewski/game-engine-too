@@ -36,7 +36,7 @@ Change "Debug" to "Release" for release build
 ```shell
 cmake --build build --config Debug
 ```
-## Add assets folder
+### Add assets folder
 To render a scene, add following folder structure to the root folder
 ```shell
 assets/models/your-folder
